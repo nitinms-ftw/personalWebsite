@@ -973,7 +973,8 @@
         </div>
 
         <form class="contact-form" id="contact-form" onsubmit="return handleSubmit(event)">
-          <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_KEY" id="form-key" />
+          <input type="hidden" name="access_key" value="" id="form-key" />
+          <input type="text" name="_gotcha" id="_hp" style="display:none !important;position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" />
           <div class="form-group">
             <label for="name">Your Name</label>
             <input type="text" id="name" name="name" placeholder="Jane Doe" required />
@@ -1412,11 +1413,29 @@
   })();
 
   // ─── Contact Form Handler ───
+  // Key split + assembled at runtime (not plain text in source)
+  const _p = ['4c640b23','07af','4c37','b7df','c4a277e290f3'];
+  document.getElementById('form-key').value = _p.join('-');
+
+  let _lastSubmit = 0;
+
   async function handleSubmit(e) {
     e.preventDefault();
     const btn = document.getElementById('submit-btn');
     const status = document.getElementById('form-status');
     const form = document.getElementById('contact-form');
+
+    // Rate limit: 1 submission per 30 seconds
+    const now = Date.now();
+    if (now - _lastSubmit < 30000) {
+      status.textContent = 'Please wait before sending again.';
+      status.className = 'form-status error';
+      return;
+    }
+
+    // Honeypot check (bot trap)
+    const hp = document.getElementById('_hp');
+    if (hp && hp.value) return;
 
     btn.textContent = 'Sending...';
     btn.disabled = true;
@@ -1433,6 +1452,7 @@
           email: document.getElementById('email').value,
           message: document.getElementById('message').value,
           subject: 'New message from nitinganneboina.com',
+          botcheck: '',
         })
       });
       const data = await resp.json();
@@ -1440,11 +1460,12 @@
         status.textContent = '✓ Message sent! I\'ll get back to you soon.';
         status.className = 'form-status success';
         form.reset();
+        _lastSubmit = now;
       } else {
         throw new Error('Failed');
       }
     } catch (err) {
-      status.textContent = 'Something went wrong. Try emailing directly.';
+      status.textContent = 'Something went wrong. Please try again.';
       status.className = 'form-status error';
     }
     btn.textContent = 'Send Message ✉';
