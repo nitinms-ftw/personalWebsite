@@ -22,6 +22,11 @@
 
     html {
       scroll-behavior: smooth;
+      scrollbar-width: none; /* Firefox */
+    }
+
+    html::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Edge */
     }
 
     body {
@@ -364,23 +369,20 @@
       transition: opacity 0.3s;
     }
 
-    /* Floating info panel inside 3D canvas */
+    /* Floating info — seamless, no card */
     #star-info {
       position: absolute;
       z-index: 20;
       pointer-events: none;
       opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.35s ease, transform 0.35s ease;
-      background: radial-gradient(ellipse at top left, rgba(20,28,60,0.92), rgba(8,10,25,0.92));
-      border: 1px solid rgba(168,192,255,0.15);
-      border-radius: 14px;
-      padding: 18px 22px;
-      max-width: 320px;
+      transform: translateY(6px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      background: none;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      max-width: 300px;
       width: max-content;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
       text-align: left;
     }
 
@@ -393,57 +395,58 @@
     #star-info .info-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
 
-    #star-info .info-icon { font-size: 1.5rem; }
+    #star-info .info-icon { font-size: 1.2rem; }
 
     #star-info h3 {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.05rem;
-      font-weight: 500;
-      color: #fff;
+      font-size: 1rem;
+      font-weight: 400;
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 0 20px rgba(100,140,255,0.4), 0 2px 8px rgba(0,0,0,0.6);
     }
 
     #star-info p {
-      color: rgba(200,215,255,0.65);
-      font-size: 0.82rem;
+      color: rgba(180,200,240,0.6);
+      font-size: 0.78rem;
       line-height: 1.55;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.5);
     }
 
-    #star-info .tags { line-height: 2; }
+    #star-info .tags { line-height: 1.8; }
 
     .tag {
       display: inline-block;
       margin: 2px 4px 2px 0;
-      padding: 3px 10px;
+      padding: 2px 8px;
       border-radius: 20px;
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       letter-spacing: 0.05em;
-      border: 1px solid rgba(168,192,255,0.2);
-      color: rgba(168,192,255,0.7);
+      border: 1px solid rgba(168,192,255,0.12);
+      color: rgba(168,192,255,0.5);
+      background: rgba(168,192,255,0.04);
     }
 
     .visit-link {
       display: inline-block;
-      margin-top: 8px;
-      color: var(--purple);
+      margin-top: 6px;
+      color: rgba(192,168,255,0.7);
       text-decoration: none;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       pointer-events: auto;
+      text-shadow: 0 0 10px rgba(192,168,255,0.3);
       transition: color 0.3s;
     }
     .visit-link:hover { color: #fff; }
 
     @media (max-width: 768px) {
-      #star-info {
-        max-width: 260px;
-        padding: 14px 16px;
-      }
-      #star-info h3 { font-size: 0.95rem; }
-      #star-info p { font-size: 0.78rem; }
+      #star-info { max-width: 240px; }
+      #star-info h3 { font-size: 0.9rem; }
+      #star-info p { font-size: 0.72rem; }
     }
 
     /* Legend below 3D */
@@ -1129,7 +1132,7 @@
     for (const [gk, group] of Object.entries(constellations)) {
       const col = new THREE.Color(group.color);
       for (const star of group.stars) {
-        const geo = new THREE.SphereGeometry(star.size * 0.2, 10, 10);
+        const geo = new THREE.SphereGeometry(star.size * 0.2, 48, 48);
         const mat = new THREE.MeshBasicMaterial({ color: col });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(...star.pos);
