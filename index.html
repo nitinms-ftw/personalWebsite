@@ -108,41 +108,10 @@
     .wp-6 .label { color: #a8c0ff; }
     .wp-6 h2 { color: #fff; }
 
-    /* ─── SCROLL HINT ─── */
-    #scroll-hint {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      text-align: center;
-      opacity: 0;
-      animation: fadeIn 1.5s ease 2s forwards;
-      pointer-events: none;
-      transition: opacity 0.6s;
-    }
-    #scroll-hint.hidden { opacity: 0 !important; }
-    #scroll-hint span {
-      display: block;
-      font-size: 0.65rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: rgba(168,192,255,0.35);
-      margin-bottom: 8px;
-    }
-    .scroll-arrow {
-      width: 20px; height: 20px;
-      border-right: 1px solid rgba(168,192,255,0.3);
-      border-bottom: 1px solid rgba(168,192,255,0.3);
-      transform: rotate(45deg);
-      margin: 0 auto;
-      animation: scrollBounce 2s ease infinite;
-    }
     @keyframes scrollBounce {
       0%, 100% { transform: rotate(45deg) translate(0,0); opacity: 0.3; }
       50% { transform: rotate(45deg) translate(4px,4px); opacity: 0.8; }
     }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     /* ─── PROGRESS DOTS ─── */
     #progress {
@@ -247,31 +216,58 @@
     /* ─── COSMIC QUOTE ─── */
     #cosmic-quote {
       position: fixed;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 15;
-      max-width: 480px;
-      width: 88%;
+      bottom: 0; left: 0; right: 0; top: 0;
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      font-size: 0.72rem;
-      font-style: italic;
-      line-height: 1.8;
-      letter-spacing: 0.03em;
-      color: rgba(168,192,255,0);
+      padding: 24px;
       pointer-events: none;
-      opacity: 0;
-      animation: quoteReveal 6s ease 2.5s forwards;
+      background: rgba(3,1,8,0.85);
+      opacity: 1;
+      transition: opacity 1.2s ease;
     }
-    @keyframes quoteReveal {
-      0%   { opacity: 0; color: rgba(168,192,255,0); transform: translateX(-50%) translateY(10px); }
-      40%  { opacity: 1; color: rgba(168,192,255,0.3); transform: translateX(-50%) translateY(0); }
-      100% { opacity: 1; color: rgba(168,192,255,0.2); transform: translateX(-50%) translateY(0); }
+    #cosmic-quote .quote-text {
+      max-width: 500px;
+      font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+      font-style: italic;
+      line-height: 1.9;
+      letter-spacing: 0.02em;
+      color: rgba(168,192,255,0.45);
+      opacity: 0;
+      transform: translateY(15px);
+      animation: quoteIn 3s ease 0.3s forwards;
+    }
+    #cosmic-quote .scroll-prompt {
+      margin-top: 40px;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(168,192,255,0);
+      animation: promptIn 1.5s ease 3.5s forwards;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    #cosmic-quote .scroll-prompt .scroll-arrow {
+      width: 16px; height: 16px;
+      border-right: 1px solid rgba(168,192,255,0.3);
+      border-bottom: 1px solid rgba(168,192,255,0.3);
+      transform: rotate(45deg);
+      animation: scrollBounce 2s ease infinite;
+    }
+    @keyframes quoteIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes promptIn {
+      to { color: rgba(168,192,255,0.3); }
     }
     #cosmic-quote.faded {
-      animation: none;
-      transition: opacity 1s ease;
       opacity: 0;
+      pointer-events: none;
     }
 
     /* ─── MOBILE ─── */
@@ -294,15 +290,18 @@
     <!-- Waypoint texts injected by JS -->
   </div>
 
-  <!-- Scroll hint -->
-  <div id="scroll-hint">
-    <span>Scroll to explore</span>
-    <div class="scroll-arrow"></div>
-  </div>
-
-  <!-- Cosmic quote — fades in at the end of the journey -->
+  <!-- Cosmic quote overlay — first thing visitors see -->
   <div id="cosmic-quote">
-    "We are a way for the cosmos to know itself. A pale blue dot suspended in a sunbeam — tiny, fragile, and fleeting. None of this was promised. Enjoy it while you last."
+    <div class="quote-text">
+      "We are a way for the cosmos to know itself.<br>
+      A pale blue dot suspended in a sunbeam —<br>
+      tiny, fragile, and fleeting.<br>
+      None of this was promised. Enjoy it while you last."
+    </div>
+    <div class="scroll-prompt">
+      <span>Scroll to begin</span>
+      <div class="scroll-arrow"></div>
+    </div>
   </div>
 
   <!-- Progress dots -->
@@ -686,7 +685,6 @@
     // ═══════════════════════════════════════
     // ANIMATION LOOP
     // ═══════════════════════════════════════
-    const scrollHint = document.getElementById('scroll-hint');
     const progDots = document.querySelectorAll('.prog-dot');
     const wpTextEls = waypoints.map((_, i) => document.getElementById(`wp-${i}`));
 
@@ -755,11 +753,8 @@
         dot.classList.toggle('active', i === currentWaypoint);
       });
 
-      // Hide scroll hint after first movement
-      if (progress > 0.01) scrollHint.classList.add('hidden');
-
-      // Fade out cosmic quote once user starts exploring
-      if (progress > 0.02) {
+      // Fade out quote overlay once user starts scrolling
+      if (progress > 0.01) {
         document.getElementById('cosmic-quote').classList.add('faded');
       }
 
