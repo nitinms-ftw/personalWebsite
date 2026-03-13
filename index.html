@@ -364,39 +364,63 @@
       transition: opacity 0.3s;
     }
 
-    /* Info panel for clicked star */
+    /* Floating info panel inside 3D canvas */
     #star-info {
-      margin-top: 24px;
-      min-height: 100px;
-      text-align: center;
-      transition: opacity 0.4s;
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      background: radial-gradient(ellipse at top left, rgba(20,28,60,0.92), rgba(8,10,25,0.92));
+      border: 1px solid rgba(168,192,255,0.15);
+      border-radius: 14px;
+      padding: 18px 22px;
+      max-width: 320px;
+      width: max-content;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      text-align: left;
     }
 
-    #star-info.empty { opacity: 0.3; }
+    #star-info.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
 
-    #star-info .info-icon { font-size: 2rem; margin-bottom: 8px; }
+    #star-info .info-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    #star-info .info-icon { font-size: 1.5rem; }
 
     #star-info h3 {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.3rem;
+      font-size: 1.05rem;
       font-weight: 500;
       color: #fff;
-      margin-bottom: 8px;
     }
 
     #star-info p {
       color: rgba(200,215,255,0.65);
-      max-width: 500px;
-      margin: 0 auto 12px;
-      font-size: 0.9rem;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      margin-bottom: 10px;
     }
+
+    #star-info .tags { line-height: 2; }
 
     .tag {
       display: inline-block;
-      margin: 4px;
-      padding: 4px 14px;
+      margin: 2px 4px 2px 0;
+      padding: 3px 10px;
       border-radius: 20px;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       letter-spacing: 0.05em;
       border: 1px solid rgba(168,192,255,0.2);
       color: rgba(168,192,255,0.7);
@@ -404,13 +428,23 @@
 
     .visit-link {
       display: inline-block;
-      margin-top: 12px;
+      margin-top: 8px;
       color: var(--purple);
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      pointer-events: auto;
       transition: color 0.3s;
     }
     .visit-link:hover { color: #fff; }
+
+    @media (max-width: 768px) {
+      #star-info {
+        max-width: 260px;
+        padding: 14px 16px;
+      }
+      #star-info h3 { font-size: 0.95rem; }
+      #star-info p { font-size: 0.78rem; }
+    }
 
     /* Legend below 3D */
     .legend {
@@ -783,12 +817,15 @@
           <p>Drag to orbit · Pinch to zoom · Tap a star to discover</p>
         </div>
 
-        <div id="three-canvas"></div>
-
-        <div id="star-info" class="empty">
-          <div class="info-icon">✦</div>
-          <h3>Tap a star to explore</h3>
-          <p>Each star represents a part of who I am — my work, skills, interests, and more.</p>
+        <div id="three-canvas">
+          <div id="star-info">
+            <div class="info-header">
+              <span class="info-icon"></span>
+              <h3></h3>
+            </div>
+            <p></p>
+            <div class="tags"></div>
+          </div>
         </div>
 
         <div class="legend" id="legend"></div>
@@ -1156,6 +1193,29 @@
       pointer.y = -((cy - rect.top) / rect.height) * 2 + 1;
     }
 
+    function positionInfoAtStar(starId) {
+      const s = starMap[starId];
+      if (!s) return;
+      const v = s.mesh.position.clone().project(camera);
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      const sx = (v.x * 0.5 + 0.5) * w;
+      const sy = (-v.y * 0.5 + 0.5) * h;
+
+      const pw = infoEl.offsetWidth || 300;
+      const ph = infoEl.offsetHeight || 150;
+
+      // Position to the right of the star, or left if near right edge
+      let px = sx + 24;
+      let py = sy - ph / 2;
+      if (px + pw > w - 16) px = sx - pw - 24;
+      if (py < 16) py = 16;
+      if (py + ph > h - 16) py = h - ph - 16;
+
+      infoEl.style.left = px + 'px';
+      infoEl.style.top = py + 'px';
+    }
+
     function onClick(e) {
       onPointer(e);
       raycaster.setFromCamera(pointer, camera);
@@ -1164,20 +1224,28 @@
         const id = hits[0].object.userData.starId;
         const s = starMap[id];
         selected = id;
-        infoEl.classList.remove('empty');
-        infoEl.querySelector('.info-icon').textContent = s.data.icon;
-        infoEl.querySelector('h3').textContent = s.data.label;
-        let html = `<p>${s.data.desc}</p>`;
-        html += s.data.tags.map(t => `<span class="tag">${t}</span>`).join('');
-        if (s.data.link) html += `<br><a href="${s.data.link}" target="_blank" rel="noopener" class="visit-link">Visit →</a>`;
-        infoEl.innerHTML = `<div class="info-icon">${s.data.icon}</div><h3>${s.data.label}</h3>${html}`;
+
+        // Build content
+        let tagsHtml = s.data.tags.map(t => `<span class="tag">${t}</span>`).join('');
+        let linkHtml = s.data.link ? `<a href="${s.data.link}" target="_blank" rel="noopener" class="visit-link">Visit →</a>` : '';
+        infoEl.innerHTML = `
+          <div class="info-header">
+            <span class="info-icon">${s.data.icon}</span>
+            <h3>${s.data.label}</h3>
+          </div>
+          <p>${s.data.desc}</p>
+          <div class="tags">${tagsHtml}${linkHtml}</div>
+        `;
+
+        // Position at the star and show
+        positionInfoAtStar(id);
+        infoEl.classList.add('visible');
 
         const target = s.mesh.position.clone();
         animCam(target.clone().add(new THREE.Vector3(2,1.5,5)), target);
       } else {
         selected = null;
-        infoEl.classList.add('empty');
-        infoEl.innerHTML = `<div class="info-icon">✦</div><h3>Tap a star to explore</h3><p>Each star represents a part of who I am.</p>`;
+        infoEl.classList.remove('visible');
       }
     }
 
@@ -1213,7 +1281,7 @@
       step();
     }
 
-    // ─── Update labels ───
+    // ─── Update labels + info panel position ───
     function updateLabels() {
       const w = container.clientWidth, h = container.clientHeight;
       for (const { el, mesh } of labelEls) {
@@ -1226,6 +1294,10 @@
         // Fade based on distance
         const dist = camera.position.distanceTo(mesh.position);
         el.style.opacity = dist < 30 ? '1' : '0';
+      }
+      // Keep info panel attached to selected star
+      if (selected && infoEl.classList.contains('visible')) {
+        positionInfoAtStar(selected);
       }
     }
 
