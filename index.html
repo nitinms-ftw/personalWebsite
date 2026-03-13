@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Nitin Ganneboina | Finance Tech & AI Storytelling</title>
   <meta name="description" content="Transforming Finance through Tech. Exploring Stories through AI." />
-  <!-- PWA / Fullscreen meta -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -14,294 +13,266 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     html, body {
-      width: 100%; height: 100%;
-      height: 100dvh; /* dynamic viewport — shrinks/grows with browser bar */
-      overflow: hidden;
-      background: #030108;
-      font-family: 'Inter', sans-serif;
-      color: #c8d5f0;
-      -webkit-font-smoothing: antialiased;
-      scrollbar-width: none;
-      /* Safe area for notch/rounded corners */
+      width:100%; height:100%; height:100dvh;
+      overflow:hidden; background:#030108;
+      font-family:'Inter',sans-serif; color:#c8d5f0;
+      -webkit-font-smoothing:antialiased;
+      scrollbar-width:none;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
-    html::-webkit-scrollbar { display: none; }
-    body { cursor: default; touch-action: none; }
+    html::-webkit-scrollbar { display:none; }
+    body { cursor:default; }
 
-    canvas { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; height: 100%; z-index: 0; }
+    /* ─── LOADING SCREEN ─── */
+    #loader {
+      position:fixed; inset:0; z-index:999;
+      background:#030108;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      transition: opacity 1s ease;
+    }
+    #loader.done { opacity:0; pointer-events:none; }
+    .loader-text {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:0.8rem; letter-spacing:0.3em;
+      text-transform:uppercase;
+      color:rgba(168,192,255,0.4);
+      margin-bottom:20px;
+    }
+    .loader-bar {
+      width:120px; height:1px;
+      background:rgba(168,192,255,0.1);
+      border-radius:1px; overflow:hidden;
+    }
+    .loader-fill {
+      height:100%; width:0%;
+      background:rgba(168,192,255,0.5);
+      transition: width 0.3s;
+    }
 
-    /* ─── OVERLAY UI ─── */
+    /* ─── TOUCH LAYER (captures all scroll/swipe) ─── */
+    #touch-layer {
+      position:fixed; inset:0; z-index:5;
+      touch-action:none;
+    }
+
+    /* ─── CANVAS ─── */
+    canvas {
+      display:block; position:fixed; top:0; left:0;
+      width:100%; height:100dvh; height:100%; z-index:1;
+    }
+
+    /* ─── UI OVERLAY ─── */
     #ui {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; height: 100%;
-      z-index: 10; pointer-events: none;
-      display: flex; align-items: center; justify-content: center;
+      position:fixed; inset:0; z-index:10;
+      pointer-events:none;
+      display:flex; align-items:center; justify-content:center;
     }
 
     /* ─── WAYPOINT TEXT ─── */
-    .waypoint-text {
-      position: absolute;
-      width: 90%;
-      max-width: 700px;
-      text-align: center;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
-      pointer-events: none;
+    .wp {
+      position:absolute; width:90%; max-width:680px;
+      text-align:center; pointer-events:none;
+      opacity:0; transform:translateY(24px) scale(0.97);
+      transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1);
     }
-    .waypoint-text.active {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: none;
+    .wp.active {
+      opacity:1; transform:translateY(0) scale(1);
     }
-    /* Only allow pointer events on interactive elements inside */
-    .waypoint-text.active .social-link,
-    .waypoint-text.active .contact-form,
-    .waypoint-text.active .send-btn {
-      pointer-events: auto;
+    .wp .label {
+      font-size:0.65rem; letter-spacing:0.3em;
+      text-transform:uppercase; margin-bottom:14px; opacity:0.5;
     }
-    .waypoint-text .label {
-      font-size: 0.7rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-      opacity: 0.5;
+    .wp h2 {
+      font-family:'Space Grotesk',sans-serif;
+      font-weight:300; line-height:1.15;
+      margin-bottom:18px; letter-spacing:0.01em;
     }
-    .waypoint-text h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 300;
-      line-height: 1.15;
-      margin-bottom: 18px;
-      letter-spacing: 0.01em;
+    .wp p {
+      font-weight:300; line-height:1.75;
+      max-width:500px; margin:0 auto; opacity:0.55;
     }
-    .waypoint-text p {
-      font-weight: 300;
-      line-height: 1.7;
-      max-width: 520px;
-      margin: 0 auto;
-      opacity: 0.6;
-    }
-    .waypoint-text .tags {
-      margin-top: 16px;
-    }
-    .waypoint-text .tag {
-      display: inline-block;
-      margin: 3px 4px;
-      padding: 4px 14px;
-      border-radius: 20px;
-      font-size: 0.65rem;
-      letter-spacing: 0.06em;
-      border: 1px solid rgba(168,192,255,0.15);
-      color: rgba(168,192,255,0.5);
+    .wp .tags { margin-top:14px; }
+    .wp .tag {
+      display:inline-block; margin:3px; padding:3px 12px;
+      border-radius:20px; font-size:0.6rem; letter-spacing:0.06em;
+      border:1px solid rgba(168,192,255,0.12);
+      color:rgba(168,192,255,0.45);
     }
 
-    /* Responsive text sizes */
-    .wp-hero h2 { font-size: clamp(2.4rem, 7vw, 5rem); }
-    .wp-hero p { font-size: clamp(0.95rem, 2.5vw, 1.15rem); }
-    .wp-standard h2 { font-size: clamp(1.6rem, 4.5vw, 2.8rem); }
-    .wp-standard p { font-size: clamp(0.85rem, 2vw, 1rem); }
+    /* Hero waypoint */
+    .wp-0 h2 {
+      font-size:clamp(2.4rem,7vw,5rem);
+      background:linear-gradient(135deg,#a8c0ff,#fff 50%,#ffd6a8);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .wp-0 p { font-size:clamp(0.95rem,2.5vw,1.15rem); }
+    /* Standard waypoints */
+    .wp:not(.wp-0) h2 { font-size:clamp(1.6rem,4.5vw,2.8rem); color:#fff; }
+    .wp:not(.wp-0) p { font-size:clamp(0.85rem,2vw,1rem); }
+    /* Accent colors */
+    .wp-1 .label { color:#a8ffc0; }
+    .wp-2 .label { color:#ffd6a8; }
+    .wp-3 .label { color:#ffa8f0; }
+    .wp-4 .label { color:#c0a8ff; }
+    .wp-5 .label { color:#a8e8ff; }
+    .wp-6 .label { color:#a8c0ff; }
 
-    /* Color accents per waypoint */
-    .wp-0 h2 { background: linear-gradient(135deg, #a8c0ff, #ffffff 50%, #ffd6a8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .wp-1 .label { color: #a8ffc0; }
-    .wp-1 h2 { color: #fff; }
-    .wp-2 .label { color: #ffd6a8; }
-    .wp-2 h2 { color: #fff; }
-    .wp-3 .label { color: #ffa8f0; }
-    .wp-3 h2 { color: #fff; }
-    .wp-4 .label { color: #c0a8ff; }
-    .wp-4 h2 { color: #fff; }
-    .wp-5 .label { color: #a8e8ff; }
-    .wp-5 h2 { color: #fff; }
-    .wp-6 .label { color: #a8c0ff; }
-    .wp-6 h2 { color: #fff; }
-
-    @keyframes scrollBounce {
-      0%, 100% { transform: rotate(45deg) translate(0,0); opacity: 0.3; }
-      50% { transform: rotate(45deg) translate(4px,4px); opacity: 0.8; }
+    /* ─── COSMIC QUOTE OVERLAY ─── */
+    #quote-overlay {
+      position:fixed; inset:0; z-index:30;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      background:rgba(3,1,8,0.88);
+      pointer-events:none;
+      transition: opacity 1.2s ease;
+    }
+    #quote-overlay.gone { opacity:0; pointer-events:none; }
+    .quote-text {
+      max-width:480px; width:88%; text-align:center;
+      font-size:clamp(0.82rem,2.2vw,1.05rem);
+      font-style:italic; line-height:1.9;
+      letter-spacing:0.02em;
+      color:rgba(168,192,255,0.4);
+      opacity:0; transform:translateY(12px);
+      animation: qIn 3s ease 0.2s forwards;
+    }
+    .scroll-prompt {
+      margin-top:36px; display:flex; flex-direction:column;
+      align-items:center; gap:8px;
+      opacity:0; animation: qIn 1.5s ease 3.2s forwards;
+    }
+    .scroll-prompt span {
+      font-size:0.6rem; letter-spacing:0.3em;
+      text-transform:uppercase; color:rgba(168,192,255,0.3);
+    }
+    .scroll-prompt .arrow {
+      width:16px; height:16px;
+      border-right:1px solid rgba(168,192,255,0.3);
+      border-bottom:1px solid rgba(168,192,255,0.3);
+      transform:rotate(45deg);
+      animation: bounce 2s ease infinite;
+    }
+    @keyframes qIn { to { opacity:1; transform:translateY(0); } }
+    @keyframes bounce {
+      0%,100% { transform:rotate(45deg) translate(0,0); opacity:0.3; }
+      50% { transform:rotate(45deg) translate(4px,4px); opacity:0.8; }
     }
 
     /* ─── PROGRESS DOTS ─── */
     #progress {
-      position: fixed;
-      right: 24px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 20;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      pointer-events: auto;
+      position:fixed; right:20px; top:50%; transform:translateY(-50%);
+      z-index:20; display:flex; flex-direction:column; gap:12px;
     }
-    .prog-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      border: 1px solid rgba(168,192,255,0.25);
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.4s ease;
-      position: relative;
+    .dot {
+      width:7px; height:7px; border-radius:50%;
+      border:1px solid rgba(168,192,255,0.2);
+      background:transparent; cursor:pointer;
+      transition:all 0.4s; position:relative;
     }
-    .prog-dot.active {
-      background: rgba(168,192,255,0.8);
-      border-color: rgba(168,192,255,0.8);
-      box-shadow: 0 0 12px rgba(168,192,255,0.4);
+    .dot.active {
+      background:rgba(168,192,255,0.7);
+      border-color:rgba(168,192,255,0.7);
+      box-shadow:0 0 10px rgba(168,192,255,0.3);
     }
-    .prog-dot .prog-label {
-      position: absolute;
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.6rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(168,192,255,0.4);
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
+    .dot .tip {
+      position:absolute; right:18px; top:50%; transform:translateY(-50%);
+      font-size:0.55rem; letter-spacing:0.1em; text-transform:uppercase;
+      color:rgba(168,192,255,0.35); white-space:nowrap;
+      opacity:0; transition:opacity 0.3s; pointer-events:none;
     }
-    .prog-dot:hover .prog-label { opacity: 1; }
+    .dot:hover .tip { opacity:1; }
 
-    /* ─── CONNECT SECTION (last waypoint) ─── */
+    /* ─── SOUND TOGGLE ─── */
+    #sound-btn {
+      position:fixed; top:20px; right:20px; z-index:20;
+      background:none; border:1px solid rgba(168,192,255,0.15);
+      border-radius:50%; width:36px; height:36px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; color:rgba(168,192,255,0.4);
+      font-size:0.9rem; transition:all 0.3s;
+    }
+    #sound-btn:hover { border-color:rgba(168,192,255,0.4); color:rgba(168,192,255,0.8); }
+
+    /* ─── CONNECT SECTION ─── */
     .social-row {
-      display: flex; gap: 12px; justify-content: center; margin-top: 24px;
-      flex-wrap: wrap;
+      display:flex; gap:10px; justify-content:center;
+      margin-top:20px; flex-wrap:wrap; pointer-events:auto;
     }
     .social-link {
-      display: flex; align-items: center; gap: 6px;
-      padding: 8px 16px;
-      border: 1px solid rgba(168,192,255,0.12);
-      border-radius: 30px;
-      color: rgba(168,192,255,0.5);
-      text-decoration: none;
-      font-size: 0.75rem;
-      transition: all 0.3s;
-      pointer-events: auto;
+      display:flex; align-items:center; gap:6px;
+      padding:7px 14px; border:1px solid rgba(168,192,255,0.1);
+      border-radius:30px; color:rgba(168,192,255,0.45);
+      text-decoration:none; font-size:0.7rem; transition:all 0.3s;
     }
-    .social-link:hover {
-      color: #fff;
-      border-color: rgba(168,192,255,0.4);
-      background: rgba(168,192,255,0.06);
-    }
-    .social-link svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
+    .social-link:hover { color:#fff; border-color:rgba(168,192,255,0.35); background:rgba(168,192,255,0.05); }
+    .social-link svg { width:13px; height:13px; fill:currentColor; }
 
-    /* Contact form */
     .contact-form {
-      max-width: 400px; margin: 20px auto 0; text-align: left;
-      pointer-events: auto;
+      max-width:380px; margin:16px auto 0; text-align:left; pointer-events:auto;
     }
-    .form-row { margin-bottom: 12px; }
-    .form-row label {
-      display: block; font-size: 0.65rem; letter-spacing: 0.1em;
-      text-transform: uppercase; color: rgba(168,192,255,0.35); margin-bottom: 4px;
+    .fr { margin-bottom:10px; }
+    .fr label {
+      display:block; font-size:0.6rem; letter-spacing:0.1em;
+      text-transform:uppercase; color:rgba(168,192,255,0.3); margin-bottom:3px;
     }
-    .form-row input, .form-row textarea {
-      width: 100%; padding: 10px 14px;
-      background: rgba(168,192,255,0.04);
-      border: 1px solid rgba(168,192,255,0.1);
-      border-radius: 8px; color: #e0e6f0;
-      font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 300;
-      outline: none; transition: border-color 0.3s;
+    .fr input, .fr textarea {
+      width:100%; padding:9px 12px;
+      background:rgba(168,192,255,0.03);
+      border:1px solid rgba(168,192,255,0.08);
+      border-radius:7px; color:#e0e6f0;
+      font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:300;
+      outline:none; transition:border-color 0.3s;
     }
-    .form-row input:focus, .form-row textarea:focus { border-color: rgba(168,192,255,0.35); }
-    .form-row textarea { min-height: 80px; resize: vertical; }
-    .form-row input::placeholder, .form-row textarea::placeholder { color: rgba(168,192,255,0.18); }
+    .fr input:focus, .fr textarea:focus { border-color:rgba(168,192,255,0.3); }
+    .fr textarea { min-height:70px; resize:vertical; }
+    .fr input::placeholder, .fr textarea::placeholder { color:rgba(168,192,255,0.15); }
     .send-btn {
-      display: block; width: 100%; padding: 12px;
-      background: rgba(168,192,255,0.08);
-      border: 1px solid rgba(168,192,255,0.2);
-      border-radius: 8px; color: rgba(168,192,255,0.8);
-      font-family: 'Inter', sans-serif; font-size: 0.85rem;
-      cursor: pointer; transition: all 0.3s; letter-spacing: 0.05em;
-      pointer-events: auto;
+      display:block; width:100%; padding:11px;
+      background:rgba(168,192,255,0.06); border:1px solid rgba(168,192,255,0.15);
+      border-radius:7px; color:rgba(168,192,255,0.7);
+      font-family:'Inter',sans-serif; font-size:0.82rem;
+      cursor:pointer; transition:all 0.3s; letter-spacing:0.05em;
     }
-    .send-btn:hover { background: rgba(168,192,255,0.14); border-color: rgba(168,192,255,0.4); color: #fff; }
-    .form-status { text-align: center; margin-top: 10px; font-size: 0.8rem; min-height: 20px; }
-    .form-status.success { color: #a8ffc0; }
-    .form-status.error { color: #ff8888; }
+    .send-btn:hover { background:rgba(168,192,255,0.12); border-color:rgba(168,192,255,0.35); color:#fff; }
+    .form-status { text-align:center; margin-top:8px; font-size:0.75rem; min-height:18px; }
+    .form-status.ok { color:#a8ffc0; }
+    .form-status.err { color:#ff8888; }
 
-    /* ─── COSMIC QUOTE ─── */
-    #cosmic-quote {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 100dvh; height: 100%;
-      z-index: 25;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
-      pointer-events: none;
-      background: rgba(3,1,8,0.85);
-      opacity: 1;
-      transition: opacity 1.2s ease;
-    }
-    #cosmic-quote .quote-text {
-      max-width: 500px;
-      font-size: clamp(0.85rem, 2.2vw, 1.05rem);
-      font-style: italic;
-      line-height: 1.9;
-      letter-spacing: 0.02em;
-      color: rgba(168,192,255,0.45);
-      opacity: 0;
-      transform: translateY(15px);
-      animation: quoteIn 3s ease 0.3s forwards;
-    }
-    #cosmic-quote .scroll-prompt {
-      margin-top: 40px;
-      font-size: 0.6rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: rgba(168,192,255,0);
-      animation: promptIn 1.5s ease 3.5s forwards;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-    #cosmic-quote .scroll-prompt .scroll-arrow {
-      width: 16px; height: 16px;
-      border-right: 1px solid rgba(168,192,255,0.3);
-      border-bottom: 1px solid rgba(168,192,255,0.3);
-      transform: rotate(45deg);
-      animation: scrollBounce 2s ease infinite;
-    }
-    @keyframes quoteIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes promptIn {
-      to { color: rgba(168,192,255,0.3); }
-    }
-    #cosmic-quote.faded {
-      opacity: 0;
-      pointer-events: none;
+    /* ─── SPEED LINES (CSS overlay for warp effect) ─── */
+    #warp {
+      position:fixed; inset:0; z-index:2;
+      pointer-events:none; opacity:0;
+      background:radial-gradient(ellipse at center, transparent 30%, rgba(168,192,255,0.03) 100%);
+      transition: opacity 0.3s;
     }
 
     /* ─── MOBILE ─── */
-    @media (max-width: 768px) {
-      #progress { right: 12px; gap: 10px; }
-      .prog-dot { width: 6px; height: 6px; }
-      .prog-dot .prog-label { display: none; }
-      .social-row { flex-direction: column; align-items: center; }
-      .contact-form { max-width: 90%; }
-    }
-    @media (max-width: 480px) {
-      .waypoint-text { width: 92%; }
+    @media (max-width:768px) {
+      #progress { right:10px; gap:9px; }
+      .dot { width:6px; height:6px; }
+      .dot .tip { display:none; }
+      .social-row { flex-direction:column; align-items:center; }
+      .contact-form { max-width:90%; }
+      #sound-btn { width:32px; height:32px; font-size:0.75rem; top:14px; right:14px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- UI Overlay -->
-  <div id="ui">
-    <!-- Waypoint texts injected by JS -->
+  <!-- LOADING SCREEN -->
+  <div id="loader">
+    <div class="loader-text">Initializing cosmos</div>
+    <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
   </div>
 
-  <!-- Cosmic quote overlay — first thing visitors see -->
-  <div id="cosmic-quote">
+  <!-- TOUCH CAPTURE LAYER (sits above canvas, below UI text) -->
+  <div id="touch-layer"></div>
+
+  <!-- QUOTE OVERLAY -->
+  <div id="quote-overlay">
     <div class="quote-text">
       "We are a way for the cosmos to know itself.<br>
       A pale blue dot suspended in a sunbeam —<br>
@@ -310,555 +281,526 @@
     </div>
     <div class="scroll-prompt">
       <span>Scroll to begin</span>
-      <div class="scroll-arrow"></div>
+      <div class="arrow"></div>
     </div>
   </div>
 
-  <!-- Progress dots -->
+  <!-- UI OVERLAY -->
+  <div id="ui"></div>
+
+  <!-- WARP SPEED OVERLAY -->
+  <div id="warp"></div>
+
+  <!-- PROGRESS -->
   <div id="progress"></div>
+
+  <!-- SOUND -->
+  <button id="sound-btn" title="Toggle sound">🔇</button>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-  (function() {
+  (function(){
     'use strict';
 
     // ═══════════════════════════════════════
     // WAYPOINT DATA
     // ═══════════════════════════════════════
-    const waypoints = [
-      {
-        label: '',
-        title: 'Nitin Ganneboina',
-        desc: 'Transforming Finance through Tech. Exploring Stories through AI. I stay calm when the world panics.',
-        tags: [],
-        pos: [0, 0, 0],
-        color: '#a8c0ff',
-        heroClass: 'wp-hero',
-        progLabel: 'Start',
-      },
-      {
-        label: 'What I Build',
-        title: 'Finance Transformation',
-        desc: 'Leading development teams to build invoicing and reconciliation platforms for major financial institutions. My work isn\'t just code — it\'s translating complex financial needs into efficient, working software.',
-        tags: ['FinTech', 'Enterprise', 'Platforms', 'Leadership'],
-        pos: [14, 5, -35],
-        color: '#a8ffc0',
-        progLabel: 'Finance',
-      },
-      {
-        label: 'My Superpower',
-        title: 'Calm in the Chaos',
-        desc: 'Software development is rarely a straight line. When high-pressure situations hit — critical bugs, tight deadlines — I don\'t panic. My strength lies in slowing down, thinking rationally, and guiding my team through the panic zone to the right solution.',
-        tags: ['Resilience', 'Problem Solving', 'Team Leadership'],
-        pos: [-10, 13, -70],
-        color: '#ffd6a8',
-        progLabel: 'Superpower',
-      },
-      {
-        label: 'The Creative Frontier',
-        title: 'AI Storytelling',
-        desc: 'Deep-diving into Generative AI, using tools like Google Veo and Flow to produce video content. I love taking a raw idea — a story, a rhyme — and visualizing it on screen. Creator at heart.',
-        tags: ['Generative AI', 'Google Veo', 'Video', 'Creativity'],
-        pos: [12, -4, -110],
-        color: '#ffa8f0',
-        progLabel: 'Creative',
-      },
-      {
-        label: 'Expanding the Toolkit',
-        title: 'Building the Future',
-        desc: 'Expanding my technical frontier by building AI-driven products — experimenting with everything from autonomous agents to SaaS applications. Managing product roadmaps while pushing what\'s possible.',
-        tags: ['AI/ML', 'SaaS', 'Agents', 'Product Management'],
-        pos: [-14, 8, -150],
-        color: '#c0a8ff',
-        progLabel: 'Future',
-      },
-      {
-        label: 'Beyond Work',
-        title: 'The Explorer',
-        desc: 'Currently reading "Four Agreements" by Don Miguel Ruiz and "Caraka Samhita" — ancient Ayurvedic wisdom. Passionate about cricket, badminton, history, culture, space tech, and deep conversations about anything.',
-        tags: ['Books', 'Cricket', 'History', 'Space Tech', 'Ayurveda'],
-        pos: [8, -8, -190],
-        color: '#a8e8ff',
-        progLabel: 'Explorer',
-      },
-      {
-        label: 'Let\'s Talk',
-        title: 'Connect With Me',
-        desc: 'I thrive on deep 1-on-1 conversations. Tech side: Process Efficiency, AI Agents, Space Tech, Financial Systems. Human side: Cricket, Badminton, History & Culture, Podcasts. No sales. Just talk.',
-        tags: [],
-        pos: [0, 2, -230],
-        color: '#a8c0ff',
-        progLabel: 'Connect',
-        isConnect: true,
-      },
+    const WP = [
+      { label:'', title:'Nitin Ganneboina',
+        desc:'Transforming Finance through Tech. Exploring Stories through AI. I stay calm when the world panics.',
+        tags:[], pos:[0,0,0], color:'#a8c0ff', dot:'Start' },
+      { label:'What I Build', title:'Finance Transformation',
+        desc:'Leading development teams to build invoicing and reconciliation platforms for major financial institutions. My work isn\'t just code — it\'s translating complex financial needs into efficient, working software.',
+        tags:['FinTech','Enterprise','Platforms','Leadership'], pos:[14,5,-35], color:'#a8ffc0', dot:'Finance' },
+      { label:'My Superpower', title:'Calm in the Chaos',
+        desc:'Software development is rarely a straight line. When high-pressure situations hit — critical bugs, tight deadlines — I don\'t panic. My strength lies in slowing down, thinking rationally, and guiding my team through the panic zone.',
+        tags:['Resilience','Problem Solving','Leadership'], pos:[-10,13,-70], color:'#ffd6a8', dot:'Superpower' },
+      { label:'The Creative Frontier', title:'AI Storytelling',
+        desc:'Deep-diving into Generative AI, using Google Veo and Flow to produce video content. Taking raw ideas — stories, rhymes — and visualizing them on screen. Creator at heart.',
+        tags:['Generative AI','Google Veo','Video','Creativity'], pos:[12,-4,-110], color:'#ffa8f0', dot:'Creative' },
+      { label:'Expanding the Toolkit', title:'Building the Future',
+        desc:'Building AI-driven products — experimenting with everything from autonomous agents to SaaS applications. Managing product roadmaps while pushing what\'s possible.',
+        tags:['AI/ML','SaaS','Agents','Product Management'], pos:[-14,8,-150], color:'#c0a8ff', dot:'Future' },
+      { label:'Beyond Work', title:'The Explorer',
+        desc:'Currently reading "Four Agreements" by Don Miguel Ruiz and "Caraka Samhita." Passionate about cricket, badminton, history, culture, space tech, and deep conversations.',
+        tags:['Books','Cricket','History','Space Tech','Ayurveda'], pos:[8,-8,-190], color:'#a8e8ff', dot:'Explorer' },
+      { label:'Let\'s Talk', title:'Connect With Me',
+        desc:'I thrive on deep 1-on-1 conversations. Tech: AI Agents, Space Tech, Financial Systems. Human: Cricket, History, Podcasts. No sales. Just talk.',
+        tags:[], pos:[0,2,-230], color:'#a8c0ff', dot:'Connect', connect:true },
     ];
-
-    const totalWaypoints = waypoints.length;
+    const N = WP.length;
 
     // ═══════════════════════════════════════
-    // GENERATE UI
+    // BUILD UI
     // ═══════════════════════════════════════
     const ui = document.getElementById('ui');
-    const progressEl = document.getElementById('progress');
+    const progEl = document.getElementById('progress');
 
-    waypoints.forEach((wp, i) => {
-      // Waypoint text
-      const div = document.createElement('div');
-      div.className = `waypoint-text ${i === 0 ? 'wp-hero' : 'wp-standard'} wp-${i}`;
-      div.id = `wp-${i}`;
-      let html = '';
-      if (wp.label) html += `<div class="label">${wp.label}</div>`;
-      html += `<h2>${wp.title}</h2>`;
-      html += `<p>${wp.desc}</p>`;
-      if (wp.tags.length) html += `<div class="tags">${wp.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
-      if (wp.isConnect) {
-        html += `
-          <div class="social-row">
-            <a href="https://github.com/nitinms-ftw" target="_blank" rel="noopener" class="social-link">
-              <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-              GitHub
-            </a>
-            <a href="https://www.linkedin.com/in/nitin-g-51778a8b" target="_blank" rel="noopener" class="social-link">
-              <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              LinkedIn
-            </a>
-            <a href="https://x.com/GanneboinaNitin" target="_blank" rel="noopener" class="social-link">
-              <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              X / Twitter
-            </a>
-          </div>
-          <form class="contact-form" id="contact-form" onsubmit="return handleSubmit(event)">
-            <input type="hidden" name="access_key" value="" id="form-key" />
-            <input type="text" name="_gotcha" id="_hp" style="display:none!important;position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" />
-            <div class="form-row">
-              <label>Your Name</label>
-              <input type="text" id="c-name" placeholder="Jane Doe" required />
-            </div>
-            <div class="form-row">
-              <label>Your Email</label>
-              <input type="email" id="c-email" placeholder="jane@example.com" required />
-            </div>
-            <div class="form-row">
-              <label>Message</label>
-              <textarea id="c-msg" placeholder="Let's talk about..."></textarea>
-            </div>
-            <button type="submit" class="send-btn" id="submit-btn">Send Message ✉</button>
-            <div class="form-status" id="form-status"></div>
-          </form>
-        `;
-      }
-      div.innerHTML = html;
-      ui.appendChild(div);
-
-      // Progress dot
+    WP.forEach((w,i) => {
+      // Text
+      const d = document.createElement('div');
+      d.className = `wp wp-${i}`;
+      d.id = `wp-${i}`;
+      let h = '';
+      if (w.label) h += `<div class="label">${w.label}</div>`;
+      h += `<h2>${w.title}</h2><p>${w.desc}</p>`;
+      if (w.tags.length) h += `<div class="tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+      if (w.connect) h += connectHTML();
+      d.innerHTML = h;
+      ui.appendChild(d);
+      // Dot
       const dot = document.createElement('div');
-      dot.className = 'prog-dot';
-      dot.innerHTML = `<span class="prog-label">${wp.progLabel}</span>`;
-      dot.addEventListener('click', () => { targetProgress = i / (totalWaypoints - 1); });
-      progressEl.appendChild(dot);
+      dot.className = 'dot';
+      dot.innerHTML = `<span class="tip">${w.dot}</span>`;
+      dot.addEventListener('click', () => { tgt = i/(N-1); });
+      progEl.appendChild(dot);
     });
 
+    function connectHTML() {
+      return `
+      <div class="social-row">
+        <a href="https://github.com/nitinms-ftw" target="_blank" rel="noopener" class="social-link">
+          <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>GitHub</a>
+        <a href="https://www.linkedin.com/in/nitin-g-51778a8b" target="_blank" rel="noopener" class="social-link">
+          <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>
+        <a href="https://x.com/GanneboinaNitin" target="_blank" rel="noopener" class="social-link">
+          <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X</a>
+      </div>
+      <form class="contact-form" id="contact-form" onsubmit="return handleSubmit(event)">
+        <input type="hidden" name="access_key" value="" id="form-key"/>
+        <input type="text" name="_gotcha" id="_hp" style="display:none!important" tabindex="-1" autocomplete="off"/>
+        <div class="fr"><label>Your Name</label><input type="text" id="c-name" placeholder="Jane Doe" required/></div>
+        <div class="fr"><label>Your Email</label><input type="email" id="c-email" placeholder="jane@example.com" required/></div>
+        <div class="fr"><label>Message</label><textarea id="c-msg" placeholder="Let's talk about..."></textarea></div>
+        <button type="submit" class="send-btn" id="submit-btn">Send Message ✉</button>
+        <div class="form-status" id="form-status"></div>
+      </form>`;
+    }
+
     // ═══════════════════════════════════════
-    // THREE.JS SCENE
+    // THREE.JS
     // ═══════════════════════════════════════
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x030108, 0.003);
-
-    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 600);
-    const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    scene.fog = new THREE.FogExp2(0x030108, 0.0025);
+    const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 600);
+    const renderer = new THREE.WebGLRenderer({ antialias:false, powerPreference:'high-performance' });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setClearColor(0x030108);
     document.body.prepend(renderer.domElement);
 
     // ═══════════════════════════════════════
-    // CAMERA PATH (CatmullRom spline)
+    // CAMERA PATH
     // ═══════════════════════════════════════
-    const pathPoints = waypoints.map(w => new THREE.Vector3(...w.pos));
-    // Add control points for smooth entry/exit
-    const entryPt = pathPoints[0].clone().add(new THREE.Vector3(0, 0, 15));
-    const exitPt = pathPoints[pathPoints.length - 1].clone().add(new THREE.Vector3(0, 0, -15));
-    const allPathPts = [entryPt, ...pathPoints, exitPt];
-    const cameraPath = new THREE.CatmullRomCurve3(allPathPts, false, 'catmullrom', 0.3);
-
-    // Map waypoint indices to progress values on the spline
-    // entryPt is index 0, waypoints are 1..N, exitPt is N+1
-    const totalPts = allPathPts.length;
-    const wpProgress = waypoints.map((_, i) => (i + 1) / (totalPts - 1));
+    const pts = WP.map(w => new THREE.Vector3(...w.pos));
+    const entry = pts[0].clone().add(new THREE.Vector3(0,0,15));
+    const exit = pts[N-1].clone().add(new THREE.Vector3(0,0,-15));
+    const spline = new THREE.CatmullRomCurve3([entry,...pts,exit], false, 'catmullrom', 0.3);
+    const wpT = WP.map((_,i) => (i+1)/(pts.length+1)); // normalized progress per waypoint
 
     // ═══════════════════════════════════════
-    // STARFIELD (layered for depth)
+    // STARS (two layers)
     // ═══════════════════════════════════════
-    function makeStars(count, spread, sizeRange, brightness) {
-      const geo = new THREE.BufferGeometry();
-      const pos = new Float32Array(count * 3);
-      const sizes = new Float32Array(count);
-      const seeds = new Float32Array(count);
-      for (let i = 0; i < count; i++) {
-        // Distribute along the camera path with spread
+    function mkStars(count, spread, sRange, bright) {
+      const g = new THREE.BufferGeometry();
+      const p = new Float32Array(count*3), s = new Float32Array(count), sd = new Float32Array(count);
+      for (let i=0; i<count; i++) {
         const t = Math.random();
-        const pathPt = cameraPath.getPointAt(t);
-        pos[i*3]   = pathPt.x + (Math.random() - 0.5) * spread;
-        pos[i*3+1] = pathPt.y + (Math.random() - 0.5) * spread;
-        pos[i*3+2] = pathPt.z + (Math.random() - 0.5) * spread;
-        sizes[i] = sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0]);
-        seeds[i] = Math.random() * 6.28;
+        const pp = spline.getPointAt(t);
+        p[i*3]=pp.x+(Math.random()-.5)*spread;
+        p[i*3+1]=pp.y+(Math.random()-.5)*spread;
+        p[i*3+2]=pp.z+(Math.random()-.5)*spread;
+        s[i]=sRange[0]+Math.random()*(sRange[1]-sRange[0]);
+        sd[i]=Math.random()*6.28;
       }
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      geo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-      geo.setAttribute('seed', new THREE.Float32BufferAttribute(seeds, 1));
-
-      const mat = new THREE.ShaderMaterial({
-        uniforms: { uTime: { value: 0 }, uBright: { value: brightness } },
-        vertexShader: `
-          attribute float size;
-          attribute float seed;
-          uniform float uTime;
-          varying float vAlpha;
-          void main() {
-            vec4 mv = modelViewMatrix * vec4(position, 1.0);
-            gl_PointSize = size * (120.0 / -mv.z);
+      g.setAttribute('position', new THREE.Float32BufferAttribute(p,3));
+      g.setAttribute('size', new THREE.Float32BufferAttribute(s,1));
+      g.setAttribute('seed', new THREE.Float32BufferAttribute(sd,1));
+      const m = new THREE.ShaderMaterial({
+        uniforms:{ uTime:{value:0}, uBright:{value:bright}, uSpeed:{value:0} },
+        vertexShader:`
+          attribute float size; attribute float seed;
+          uniform float uTime, uSpeed;
+          varying float vA;
+          void main(){
+            vec4 mv = modelViewMatrix * vec4(position,1.0);
+            // Stretch points into lines when moving fast
+            float stretch = 1.0 + uSpeed * 8.0;
+            gl_PointSize = size * stretch * (120.0 / -mv.z);
             gl_Position = projectionMatrix * mv;
-            vAlpha = 0.3 + 0.7 * abs(sin(uTime * 0.4 + seed));
-          }
-        `,
-        fragmentShader: `
-          uniform float uBright;
-          varying float vAlpha;
-          void main() {
-            float d = length(gl_PointCoord - 0.5) * 2.0;
-            if (d > 1.0) discard;
-            float a = (1.0 - d * d) * vAlpha * uBright;
-            gl_FragColor = vec4(0.75, 0.82, 1.0, a);
-          }
-        `,
-        transparent: true, depthWrite: false,
+            vA = 0.3 + 0.7*abs(sin(uTime*0.4+seed));
+          }`,
+        fragmentShader:`
+          uniform float uBright, uSpeed;
+          varying float vA;
+          void main(){
+            vec2 uv = gl_PointCoord - 0.5;
+            // When moving fast, elongate into streaks
+            float d = length(vec2(uv.x, uv.y * (1.0 + uSpeed*6.0))) * 2.0;
+            if(d>1.0) discard;
+            float a = (1.0-d*d)*vA*uBright;
+            // Brighter when fast
+            vec3 col = mix(vec3(0.75,0.82,1.0), vec3(0.9,0.95,1.0), uSpeed);
+            gl_FragColor = vec4(col, a + uSpeed*0.3);
+          }`,
+        transparent:true, depthWrite:false,
       });
-      return { points: new THREE.Points(geo, mat), mat };
+      return { points:new THREE.Points(g,m), mat:m };
     }
 
-    // Close stars (bright, small spread)
-    const nearStars = makeStars(800, 60, [0.3, 2.0], 0.7);
-    scene.add(nearStars.points);
-    // Far stars (dim, wide spread)
-    const farStars = makeStars(1500, 200, [0.2, 1.2], 0.35);
-    scene.add(farStars.points);
+    const near = mkStars(800, 50, [0.3,2.0], 0.7);
+    const far = mkStars(1500, 180, [0.2,1.2], 0.35);
+    scene.add(near.points); scene.add(far.points);
 
     // ═══════════════════════════════════════
-    // WAYPOINT STARS (glowing orbs)
+    // WAYPOINT ORBS
     // ═══════════════════════════════════════
-    function createGlow(color) {
-      const c = document.createElement('canvas');
-      c.width = 64; c.height = 64;
-      const ctx = c.getContext('2d');
-      const g = ctx.createRadialGradient(32,32,0,32,32,32);
-      g.addColorStop(0, color);
-      g.addColorStop(0.3, color + 'aa');
-      g.addColorStop(0.6, color + '33');
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,64,64);
+    function mkGlow(color) {
+      const c=document.createElement('canvas'); c.width=64; c.height=64;
+      const x=c.getContext('2d');
+      const g=x.createRadialGradient(32,32,0,32,32,32);
+      g.addColorStop(0,color); g.addColorStop(0.3,color+'aa');
+      g.addColorStop(0.6,color+'33'); g.addColorStop(1,'transparent');
+      x.fillStyle=g; x.fillRect(0,0,64,64);
       return new THREE.CanvasTexture(c);
     }
 
-    const wpMeshes = [];
-    waypoints.forEach((wp, i) => {
-      const col = new THREE.Color(wp.color);
-      // Sphere
-      const size = i === 0 ? 0.6 : 0.35;
-      const geo = new THREE.SphereGeometry(size, 48, 48);
-      const mat = new THREE.MeshBasicMaterial({ color: col });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(...wp.pos);
-      scene.add(mesh);
+    const orbs = [];
+    WP.forEach((w,i) => {
+      const sz = i===0 ? 0.55 : 0.3;
+      const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(sz,48,48),
+        new THREE.MeshBasicMaterial({ color:new THREE.Color(w.color) })
+      );
+      mesh.position.set(...w.pos); scene.add(mesh);
+      const gs = i===0 ? 4 : 2.2;
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+        map:mkGlow(w.color), transparent:true, opacity:0.7,
+        depthWrite:false, blending:THREE.AdditiveBlending
+      }));
+      sp.scale.set(gs,gs,1); sp.position.set(...w.pos); scene.add(sp);
+      orbs.push({mesh,sp,gs});
+    });
 
-      // Inner glow
-      const sMat = new THREE.SpriteMaterial({
-        map: createGlow(wp.color),
-        transparent: true, opacity: 0.8,
-        depthWrite: false, blending: THREE.AdditiveBlending,
+    // Path line
+    const lp=[]; for(let i=0;i<=200;i++){const p=spline.getPointAt(i/200);lp.push(p.x,p.y,p.z);}
+    const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));
+    scene.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color:0x334477,transparent:true,opacity:0.1})));
+
+    // Nebulae
+    WP.forEach((w,i) => {
+      if(i===0||i===N-1) return;
+      const nm=new THREE.SpriteMaterial({
+        map:mkGlow(w.color), transparent:true, opacity:0.04,
+        depthWrite:false, blending:THREE.AdditiveBlending
       });
-      const sprite = new THREE.Sprite(sMat);
-      const glowSize = i === 0 ? 4 : 2.5;
-      sprite.scale.set(glowSize, glowSize, 1);
-      sprite.position.set(...wp.pos);
-      scene.add(sprite);
-
-      wpMeshes.push({ mesh, sprite, baseGlow: glowSize });
+      const ns=new THREE.Sprite(nm); ns.scale.set(28,28,1);
+      ns.position.set(w.pos[0]+(Math.random()-.5)*4, w.pos[1]+(Math.random()-.5)*4, w.pos[2]-5);
+      scene.add(ns);
     });
 
     // ═══════════════════════════════════════
-    // PATH LINE (connecting waypoints)
+    // PARTICLE TRAIL (follows camera)
     // ═══════════════════════════════════════
-    const pathLineGeo = new THREE.BufferGeometry();
-    const pathLinePts = [];
-    for (let i = 0; i <= 300; i++) {
-      const pt = cameraPath.getPointAt(i / 300);
-      pathLinePts.push(pt.x, pt.y, pt.z);
+    const TRAIL_N = 80;
+    const trailGeo = new THREE.BufferGeometry();
+    const trailPos = new Float32Array(TRAIL_N*3);
+    const trailAlpha = new Float32Array(TRAIL_N);
+    for(let i=0;i<TRAIL_N;i++) { trailAlpha[i]=1-i/TRAIL_N; }
+    trailGeo.setAttribute('position', new THREE.Float32BufferAttribute(trailPos,3));
+    trailGeo.setAttribute('alpha', new THREE.Float32BufferAttribute(trailAlpha,1));
+    const trailMat = new THREE.ShaderMaterial({
+      uniforms: { uSpeed:{value:0} },
+      vertexShader:`
+        attribute float alpha;
+        varying float vA;
+        uniform float uSpeed;
+        void main(){
+          vA = alpha * uSpeed;
+          vec4 mv = modelViewMatrix * vec4(position,1.0);
+          gl_PointSize = (3.0 + uSpeed*5.0) * (80.0/-mv.z);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader:`
+        varying float vA;
+        void main(){
+          float d=length(gl_PointCoord-0.5)*2.0;
+          if(d>1.0) discard;
+          gl_FragColor = vec4(0.6,0.7,1.0,(1.0-d)*vA*0.4);
+        }`,
+      transparent:true, depthWrite:false,
+    });
+    const trailPoints = new THREE.Points(trailGeo, trailMat);
+    scene.add(trailPoints);
+
+    // Trail history buffer
+    const trailHistory = [];
+    for(let i=0;i<TRAIL_N;i++) trailHistory.push(new THREE.Vector3());
+
+    // ═══════════════════════════════════════
+    // AUDIO (Web Audio API — no external files)
+    // ═══════════════════════════════════════
+    let audioCtx, ambientGain, whooshGain, ambientOsc, soundOn=false;
+
+    function initAudio() {
+      if(audioCtx) return;
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+
+      // Ambient drone
+      ambientGain = audioCtx.createGain();
+      ambientGain.gain.value = 0;
+      ambientGain.connect(audioCtx.destination);
+
+      ambientOsc = audioCtx.createOscillator();
+      ambientOsc.type = 'sine';
+      ambientOsc.frequency.value = 60;
+      const lfo = audioCtx.createOscillator();
+      lfo.frequency.value = 0.1;
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 8;
+      lfo.connect(lfoGain);
+      lfoGain.connect(ambientOsc.frequency);
+      lfo.start();
+
+      // Add harmonics
+      const osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine'; osc2.frequency.value = 90;
+      const g2 = audioCtx.createGain(); g2.gain.value = 0.3;
+      osc2.connect(g2); g2.connect(ambientGain);
+      osc2.start();
+
+      ambientOsc.connect(ambientGain);
+      ambientOsc.start();
+
+      // Whoosh (noise)
+      whooshGain = audioCtx.createGain();
+      whooshGain.gain.value = 0;
+      const bufSize = audioCtx.sampleRate * 2;
+      const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+      const data = buf.getChannelData(0);
+      for(let i=0;i<bufSize;i++) data[i]=(Math.random()*2-1)*0.5;
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buf; noise.loop = true;
+      const bpf = audioCtx.createBiquadFilter();
+      bpf.type = 'bandpass'; bpf.frequency.value = 800; bpf.Q.value = 0.5;
+      noise.connect(bpf); bpf.connect(whooshGain);
+      whooshGain.connect(audioCtx.destination);
+      noise.start();
     }
-    pathLineGeo.setAttribute('position', new THREE.Float32BufferAttribute(pathLinePts, 3));
-    const pathLineMat = new THREE.LineBasicMaterial({
-      color: 0x334477,
-      transparent: true,
-      opacity: 0.12,
-    });
-    scene.add(new THREE.Line(pathLineGeo, pathLineMat));
 
-    // ═══════════════════════════════════════
-    // NEBULA CLOUDS (colored ambiance near waypoints)
-    // ═══════════════════════════════════════
-    function createNebula(color, opacity) {
-      const c = document.createElement('canvas');
-      c.width = 128; c.height = 128;
-      const ctx = c.getContext('2d');
-      const g = ctx.createRadialGradient(64,64,0,64,64,64);
-      g.addColorStop(0, color + Math.round(opacity * 255).toString(16).padStart(2,'0'));
-      g.addColorStop(0.5, color + '11');
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,128,128);
-      return new THREE.CanvasTexture(c);
+    function updateAudio(spd) {
+      if(!audioCtx || !soundOn) return;
+      ambientGain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime+0.1);
+      whooshGain.gain.linearRampToValueAtTime(spd*0.15, audioCtx.currentTime+0.05);
+      ambientOsc.frequency.linearRampToValueAtTime(60+spd*40, audioCtx.currentTime+0.1);
     }
 
-    waypoints.forEach((wp, i) => {
-      if (i === 0 || i === waypoints.length - 1) return;
-      const nMat = new THREE.SpriteMaterial({
-        map: createNebula(wp.color, 0.06),
-        transparent: true, depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      });
-      const nebula = new THREE.Sprite(nMat);
-      nebula.scale.set(30, 30, 1);
-      const p = wp.pos;
-      nebula.position.set(p[0] + (Math.random()-0.5)*5, p[1] + (Math.random()-0.5)*5, p[2] - 5);
-      scene.add(nebula);
+    const soundBtn = document.getElementById('sound-btn');
+    soundBtn.addEventListener('click', () => {
+      initAudio();
+      soundOn = !soundOn;
+      soundBtn.textContent = soundOn ? '🔊' : '🔇';
+      if(!soundOn && ambientGain) {
+        ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
+        whooshGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
+      }
     });
 
     // ═══════════════════════════════════════
-    // NAVIGATION STATE
+    // NAVIGATION (scroll + touch everywhere)
     // ═══════════════════════════════════════
-    let progress = 0;          // Current smooth progress (0-1)
-    let targetProgress = 0;    // Target progress (driven by input)
-    const speed = 0.035;       // How fast we move per scroll tick
-    let currentWaypoint = 0;
-    let lastTime = performance.now();
+    let prog = 0, tgt = 0;
+    const SPD = 0.035;
+    const touchLayer = document.getElementById('touch-layer');
 
-    // ═══════════════════════════════════════
-    // INPUT HANDLING
-    // ═══════════════════════════════════════
-
-    // Wheel (desktop)
-    window.addEventListener('wheel', (e) => {
+    // Wheel — capture on window AND touch layer
+    function onWheel(e) {
       e.preventDefault();
-      const delta = Math.sign(e.deltaY) * speed;
-      targetProgress = Math.max(0, Math.min(1, targetProgress + delta));
-    }, { passive: false });
+      tgt = Math.max(0, Math.min(1, tgt + Math.sign(e.deltaY)*SPD));
+    }
+    window.addEventListener('wheel', onWheel, {passive:false});
+    touchLayer.addEventListener('wheel', onWheel, {passive:false});
 
-    // Touch (mobile) — capture on document for full-screen swipe
-    let touchStartY = 0;
-    let touchStartProgress = 0;
-    let isSwiping = false;
+    // Touch — capture on touch layer (covers entire screen)
+    let ty0=0, tp0=0, swiping=false;
+    touchLayer.addEventListener('touchstart', (e) => {
+      ty0=e.touches[0].clientY; tp0=tgt; swiping=true;
+    }, {passive:true});
+    touchLayer.addEventListener('touchmove', (e) => {
+      if(!swiping) return;
+      e.preventDefault();
+      const dy = ty0 - e.touches[0].clientY;
+      tgt = Math.max(0, Math.min(1, tp0 + dy * 2.5/innerHeight));
+    }, {passive:false});
+    touchLayer.addEventListener('touchend', ()=>{ swiping=false; }, {passive:true});
 
+    // Also capture on document for any missed areas
     document.addEventListener('touchstart', (e) => {
-      // Let form inputs handle their own touch
-      if (e.target.closest('input') || e.target.closest('textarea') || e.target.closest('button')) return;
-      touchStartY = e.touches[0].clientY;
-      touchStartProgress = targetProgress;
-      isSwiping = true;
-    }, { passive: true });
-
+      if(e.target.closest('input,textarea,button,a')) return;
+      ty0=e.touches[0].clientY; tp0=tgt; swiping=true;
+    }, {passive:true});
     document.addEventListener('touchmove', (e) => {
-      if (!isSwiping) return;
-      if (e.target.closest('input') || e.target.closest('textarea')) return;
+      if(!swiping || e.target.closest('input,textarea')) return;
       e.preventDefault();
-      const deltaY = touchStartY - e.touches[0].clientY;
-      const sensitivity = 2.2 / window.innerHeight;
-      targetProgress = Math.max(0, Math.min(1, touchStartProgress + deltaY * sensitivity));
-    }, { passive: false });
-
-    document.addEventListener('touchend', () => { isSwiping = false; }, { passive: true });
+      const dy = ty0 - e.touches[0].clientY;
+      tgt = Math.max(0, Math.min(1, tp0 + dy * 2.5/innerHeight));
+    }, {passive:false});
+    document.addEventListener('touchend', ()=>{ swiping=false; }, {passive:true});
 
     // Keyboard
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown' || e.key === ' ') {
-        e.preventDefault();
-        // Jump to next waypoint
-        const next = Math.min(currentWaypoint + 1, totalWaypoints - 1);
-        targetProgress = wpProgress[next];
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        const prev = Math.max(currentWaypoint - 1, 0);
-        targetProgress = wpProgress[prev];
-      }
+      if(e.key==='ArrowDown'||e.key===' ') { e.preventDefault(); tgt=Math.min(1,wpT[Math.min(curWP+1,N-1)]); }
+      else if(e.key==='ArrowUp') { e.preventDefault(); tgt=Math.max(0,wpT[Math.max(curWP-1,0)]); }
     });
+
+    // ═══════════════════════════════════════
+    // LOADING
+    // ═══════════════════════════════════════
+    const loader = document.getElementById('loader');
+    const loaderFill = document.getElementById('loader-fill');
+    let loaded = false;
+    function fakeLoad() {
+      let p=0;
+      const iv = setInterval(()=>{
+        p += 8 + Math.random()*12;
+        if(p>=100) { p=100; clearInterval(iv); setTimeout(()=>{ loader.classList.add('done'); loaded=true; },400); }
+        loaderFill.style.width = p+'%';
+      }, 120);
+    }
+    fakeLoad();
 
     // ═══════════════════════════════════════
     // ANIMATION LOOP
     // ═══════════════════════════════════════
-    const progDots = document.querySelectorAll('.prog-dot');
-    const wpTextEls = waypoints.map((_, i) => document.getElementById(`wp-${i}`));
+    const dots = document.querySelectorAll('.dot');
+    const wpEls = WP.map((_,i)=>document.getElementById(`wp-${i}`));
+    const warpEl = document.getElementById('warp');
+    const quoteEl = document.getElementById('quote-overlay');
+    let curWP=0, lastProg=0, lastTime=performance.now();
 
-    function animate() {
-      requestAnimationFrame(animate);
+    function tick() {
+      requestAnimationFrame(tick);
+      if(!loaded) return;
 
       const now = performance.now();
-      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      const dt = Math.min((now-lastTime)/1000, 0.05);
       lastTime = now;
 
-      // Smooth progress interpolation
-      const lerpSpeed = 2.5;
-      progress += (targetProgress - progress) * Math.min(lerpSpeed * dt * 4, 1);
-      progress = Math.max(0, Math.min(1, progress));
+      // Smooth interpolation
+      prog += (tgt - prog) * Math.min(3*dt*4, 1);
+      prog = Math.max(0, Math.min(1, prog));
 
-      // Camera position on spline
-      const camT = Math.max(0.001, Math.min(0.999, progress));
-      const camPos = cameraPath.getPointAt(camT);
-      camera.position.copy(camPos);
+      // Speed (for effects)
+      const velocity = Math.abs(prog - lastProg) / dt;
+      const spd = Math.min(velocity * 8, 1); // normalized 0-1
+      lastProg = prog;
 
-      // Look ahead on path
-      const lookT = Math.min(camT + 0.015, 0.999);
-      const lookAt = cameraPath.getPointAt(lookT);
-      camera.lookAt(lookAt);
+      // Camera
+      const ct = Math.max(0.001, Math.min(0.999, prog));
+      camera.position.copy(spline.getPointAt(ct));
+      camera.lookAt(spline.getPointAt(Math.min(ct+0.015, 0.999)));
+      const tan = spline.getTangentAt(ct);
+      camera.rotation.z = -tan.x * 0.08;
 
-      // Subtle camera roll based on lateral movement
-      const tangent = cameraPath.getTangentAt(camT);
-      camera.rotation.z = -tangent.x * 0.08;
+      // Star effects
+      const t = now*0.001;
+      near.mat.uniforms.uTime.value = t;
+      near.mat.uniforms.uSpeed.value = spd;
+      far.mat.uniforms.uTime.value = t;
+      far.mat.uniforms.uSpeed.value = spd;
 
-      // Update star twinkle
-      const elapsed = now * 0.001;
-      nearStars.mat.uniforms.uTime.value = elapsed;
-      farStars.mat.uniforms.uTime.value = elapsed;
+      // Warp overlay
+      warpEl.style.opacity = spd * 0.8;
 
-      // Pulse waypoint glows
-      wpMeshes.forEach((wm, i) => {
-        const pulse = 1 + 0.15 * Math.sin(elapsed * 1.5 + i * 1.7);
-        wm.sprite.scale.setScalar(wm.baseGlow * pulse);
-        // Brighten when camera is near
-        const dist = camera.position.distanceTo(wm.mesh.position);
-        wm.sprite.material.opacity = dist < 15 ? 0.9 : 0.5;
-      });
-
-      // Determine active waypoint
-      let closest = 0;
-      let closestDist = Infinity;
-      wpProgress.forEach((wp, i) => {
-        const d = Math.abs(progress - wp);
-        if (d < closestDist) { closestDist = d; closest = i; }
-      });
-      currentWaypoint = closest;
-
-      // Update waypoint text visibility
-      wpTextEls.forEach((el, i) => {
-        const dist = Math.abs(progress - wpProgress[i]);
-        const threshold = 0.055;
-        if (dist < threshold) {
-          el.classList.add('active');
-        } else {
-          el.classList.remove('active');
-        }
-      });
-
-      // Update progress dots
-      progDots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === currentWaypoint);
-      });
-
-      // Fade out quote overlay once user starts scrolling
-      if (progress > 0.01) {
-        document.getElementById('cosmic-quote').classList.add('faded');
+      // Particle trail
+      trailHistory.unshift(camera.position.clone().add(new THREE.Vector3((Math.random()-.5)*0.5,(Math.random()-.5)*0.5,0)));
+      trailHistory.length = TRAIL_N;
+      const tp = trailGeo.attributes.position.array;
+      for(let i=0;i<TRAIL_N;i++){
+        const h=trailHistory[i];
+        if(h){tp[i*3]=h.x;tp[i*3+1]=h.y;tp[i*3+2]=h.z;}
       }
+      trailGeo.attributes.position.needsUpdate=true;
+      trailMat.uniforms.uSpeed.value = spd;
+
+      // Pulse orbs
+      orbs.forEach((o,i) => {
+        const pulse = 1+0.15*Math.sin(t*1.5+i*1.7);
+        o.sp.scale.setScalar(o.gs*pulse);
+        const d = camera.position.distanceTo(o.mesh.position);
+        o.sp.material.opacity = d<15?0.9:0.5;
+      });
+
+      // Active waypoint
+      let closest=0, cd=Infinity;
+      wpT.forEach((w,i)=>{ const d=Math.abs(prog-w); if(d<cd){cd=d;closest=i;} });
+      curWP = closest;
+
+      wpEls.forEach((el,i) => {
+        el.classList.toggle('active', Math.abs(prog-wpT[i])<0.055);
+      });
+      dots.forEach((d,i) => d.classList.toggle('active', i===curWP));
+
+      // Quote overlay
+      if(prog>0.01) quoteEl.classList.add('gone');
+
+      // Audio
+      updateAudio(spd);
 
       renderer.render(scene, camera);
     }
+    tick();
 
-    animate();
-
-    // ═══════════════════════════════════════
-    // RESIZE (handles mobile bar hide/show)
-    // ═══════════════════════════════════════
-    function onResize() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      camera.aspect = w / h;
+    // Resize
+    function onResize(){
+      camera.aspect=innerWidth/innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(innerWidth,innerHeight);
     }
-    window.addEventListener('resize', onResize);
-    // Also listen to orientationchange for mobile
-    window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
-    // visualViewport API — most reliable for mobile browser bar changes
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', onResize);
-    }
+    addEventListener('resize', onResize);
+    addEventListener('orientationchange', ()=>setTimeout(onResize,200));
+    if(visualViewport) visualViewport.addEventListener('resize', onResize);
 
-    // ═══════════════════════════════════════
-    // FULLSCREEN ON FIRST INTERACTION (mobile)
-    // ═══════════════════════════════════════
-    let fsRequested = false;
-    function tryFullscreen() {
-      if (fsRequested) return;
-      fsRequested = true;
-      const el = document.documentElement;
-      const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-      if (rfs) {
-        rfs.call(el).catch(() => {}); // Silently fail if denied
-      }
+    // Fullscreen on first interaction
+    let fs=false;
+    function tryFS(){
+      if(fs)return; fs=true;
+      const r=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+      if(r) r.call(document.documentElement).catch(()=>{});
     }
-    // Trigger on first scroll/swipe (user gesture required)
-    document.addEventListener('touchstart', tryFullscreen, { once: true });
-    document.addEventListener('wheel', tryFullscreen, { once: true });
+    document.addEventListener('touchstart',tryFS,{once:true});
 
   })();
 
   // ═══════════════════════════════════════
   // CONTACT FORM
   // ═══════════════════════════════════════
-  const _p = ['4c640b23','07af','4c37','b7df','c4a277e290f3'];
-  document.getElementById('form-key').value = _p.join('-');
-  let _lastSubmit = 0;
-
-  async function handleSubmit(e) {
+  const _p=['4c640b23','07af','4c37','b7df','c4a277e290f3'];
+  document.getElementById('form-key').value=_p.join('-');
+  let _ls=0;
+  async function handleSubmit(e){
     e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    const status = document.getElementById('form-status');
-    const form = document.getElementById('contact-form');
-    const now = Date.now();
-    if (now - _lastSubmit < 30000) {
-      status.textContent = 'Please wait before sending again.';
-      status.className = 'form-status error';
-      return;
-    }
-    const hp = document.getElementById('_hp');
-    if (hp && hp.value) return;
-    btn.textContent = 'Sending...';
-    btn.disabled = true;
-    status.textContent = '';
-    try {
-      const resp = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_key: document.getElementById('form-key').value,
-          name: document.getElementById('c-name').value,
-          email: document.getElementById('c-email').value,
-          message: document.getElementById('c-msg').value,
-          subject: 'New message from nitinganneboina.com',
-          botcheck: '',
+    const btn=document.getElementById('submit-btn');
+    const st=document.getElementById('form-status');
+    if(Date.now()-_ls<30000){st.textContent='Please wait.';st.className='form-status err';return;}
+    if(document.getElementById('_hp').value)return;
+    btn.textContent='Sending...';btn.disabled=true;st.textContent='';
+    try{
+      const r=await fetch('https://api.web3forms.com/submit',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          access_key:document.getElementById('form-key').value,
+          name:document.getElementById('c-name').value,
+          email:document.getElementById('c-email').value,
+          message:document.getElementById('c-msg').value,
+          subject:'New message from nitinganneboina.com',botcheck:''
         })
       });
-      const data = await resp.json();
-      if (data.success) {
-        status.textContent = '✓ Sent! I\'ll get back to you soon.';
-        status.className = 'form-status success';
-        form.reset();
-        _lastSubmit = now;
-      } else { throw new Error(); }
-    } catch (err) {
-      status.textContent = 'Something went wrong. Please try again.';
-      status.className = 'form-status error';
-    }
-    btn.textContent = 'Send Message ✉';
-    btn.disabled = false;
+      const d=await r.json();
+      if(d.success){st.textContent='✓ Sent!';st.className='form-status ok';document.getElementById('contact-form').reset();_ls=Date.now();}
+      else throw 0;
+    }catch(e){st.textContent='Failed. Try again.';st.className='form-status err';}
+    btn.textContent='Send Message ✉';btn.disabled=false;
   }
   </script>
 </body>
