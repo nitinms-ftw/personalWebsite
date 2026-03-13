@@ -35,6 +35,7 @@
       transition: opacity 1.8s cubic-bezier(0.16,1,0.3,1);
     }
     #loader.done { opacity:0; pointer-events:none; }
+    #loader.ready { pointer-events:none; }
     .loader-text {
       font-family:'Space Grotesk',sans-serif;
       font-size:0.8rem; letter-spacing:0.3em;
@@ -1125,10 +1126,16 @@
     function fakeLoad() {
       let p=0;
       const iv = setInterval(()=>{
-        p += 6 + Math.random()*10;
-        if(p>=100) { p=100; clearInterval(iv); setTimeout(()=>{ loader.classList.add('done'); loaded=true; },500); }
+        p += 15 + Math.random()*20;
+        if(p>=100) {
+          p=100; clearInterval(iv);
+          // Enable scrolling immediately, let fade happen in background
+          loaded=true;
+          loader.classList.add('ready'); // pass through touches now
+          setTimeout(()=>{ loader.classList.add('done'); }, 200);
+        }
         loaderFill.style.width = p+'%';
-      }, 100);
+      }, 80);
     }
     fakeLoad();
 
