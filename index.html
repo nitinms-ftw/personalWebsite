@@ -9,1414 +9,729 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --blue: #a8c0ff;
-      --gold: #ffd6a8;
-      --green: #a8ffc0;
-      --pink: #ffa8f0;
-      --purple: #c0a8ff;
-      --cyan: #a8e8ff;
-      --yellow: #ffe8a8;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      scrollbar-width: none; /* Firefox */
-    }
-
-    html::-webkit-scrollbar {
-      display: none; /* Chrome, Safari, Edge */
-    }
-
-    body {
-      background: #050510;
-      color: #c8d5f0;
-      font-family: 'Inter', sans-serif;
-      font-weight: 300;
-      line-height: 1.7;
-      overflow-x: hidden;
-    }
-
-    /* ─── CANVAS (fixed background) ─── */
-    #canvas-container {
-      position: fixed;
-      top: 0; left: 0;
+    html, body {
       width: 100%; height: 100%;
-      z-index: 0;
-    }
-
-    /* ─── SCROLLABLE CONTENT OVER CANVAS ─── */
-    .content {
-      position: relative;
-      z-index: 10;
-    }
-
-    /* ─── NAVIGATION ─── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      padding: 18px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: linear-gradient(to bottom, rgba(5,5,16,0.95), transparent);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-
-    .nav-name {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1rem;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.8);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 24px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      font-size: 0.8rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(168,192,255,0.5);
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-
-    .nav-links a:hover { color: #fff; }
-
-    /* ─── SECTIONS ─── */
-    section {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 100px 24px;
-    }
-
-    .section-inner {
-      max-width: 900px;
-      width: 100%;
-    }
-
-    /* ─── HERO ─── */
-    #hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 60px 24px;
-    }
-
-    .hero-greeting {
-      font-size: 0.9rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 20px;
-      opacity: 0;
-      animation: fadeUp 1s ease 0.3s forwards;
-    }
-
-    .hero-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(2.2rem, 6vw, 4.5rem);
-      font-weight: 300;
-      letter-spacing: 0.02em;
-      line-height: 1.15;
-      background: linear-gradient(135deg, #a8c0ff 0%, #ffffff 40%, #ffd6a8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 24px;
-      opacity: 0;
-      animation: fadeUp 1s ease 0.6s forwards;
-    }
-
-    .hero-sub {
-      font-size: clamp(1rem, 2.5vw, 1.2rem);
-      max-width: 550px;
-      color: rgba(168,192,255,0.6);
-      margin-bottom: 40px;
-      opacity: 0;
-      animation: fadeUp 1s ease 0.9s forwards;
-    }
-
-    .hero-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 36px;
-      border: 1px solid rgba(168,192,255,0.3);
-      border-radius: 50px;
-      color: var(--blue);
-      text-decoration: none;
-      font-size: 0.85rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      transition: all 0.4s ease;
-      opacity: 0;
-      animation: fadeUp 1s ease 1.2s forwards;
-    }
-
-    .hero-cta:hover {
-      background: rgba(168,192,255,0.1);
-      border-color: rgba(168,192,255,0.6);
-      transform: translateY(-2px);
-    }
-
-    .scroll-hint {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      opacity: 0;
-      animation: fadeUp 1s ease 1.8s forwards;
-    }
-
-    .scroll-hint span {
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(168,192,255,0.3);
-    }
-
-    .scroll-line {
-      width: 1px;
-      height: 40px;
-      background: linear-gradient(to bottom, rgba(168,192,255,0.4), transparent);
-      animation: scrollPulse 2s ease infinite;
-    }
-
-    @keyframes scrollPulse {
-      0%, 100% { opacity: 0.3; transform: scaleY(1); }
-      50% { opacity: 0.8; transform: scaleY(1.3); }
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ─── ABOUT ─── */
-    .about-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      align-items: center;
-    }
-
-    .about-text h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.5rem);
-      font-weight: 400;
-      color: #fff;
-      margin-bottom: 24px;
-      line-height: 1.2;
-    }
-
-    .about-text h2 em {
-      font-style: normal;
-      color: var(--gold);
-    }
-
-    .about-text p {
-      margin-bottom: 16px;
-      color: rgba(200,215,255,0.7);
-    }
-
-    .about-text strong {
-      color: #fff;
-      font-weight: 500;
-    }
-
-    .stat-row {
-      display: flex;
-      gap: 40px;
-      margin-top: 32px;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .stat-num {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 2rem;
-      font-weight: 600;
-      color: var(--blue);
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(168,192,255,0.4);
-      margin-top: 4px;
-    }
-
-    /* Superpower card */
-    .superpower-card {
-      background: radial-gradient(ellipse at top left, rgba(30,40,80,0.4), rgba(5,5,16,0.6));
-      border: 1px solid rgba(168,192,255,0.1);
-      border-radius: 20px;
-      padding: 40px;
-      position: relative;
       overflow: hidden;
+      background: #030108;
+      font-family: 'Inter', sans-serif;
+      color: #c8d5f0;
+      -webkit-font-smoothing: antialiased;
+      scrollbar-width: none;
+    }
+    html::-webkit-scrollbar { display: none; }
+    body { cursor: default; touch-action: none; }
+
+    canvas { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+    /* ─── OVERLAY UI ─── */
+    #ui {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 10; pointer-events: none;
+      display: flex; align-items: center; justify-content: center;
     }
 
-    .superpower-card::before {
-      content: '';
+    /* ─── WAYPOINT TEXT ─── */
+    .waypoint-text {
       position: absolute;
-      top: -50%; left: -50%;
-      width: 200%; height: 200%;
-      background: radial-gradient(circle at 30% 30%, rgba(168,192,255,0.05), transparent 60%);
-    }
-
-    .superpower-card .icon {
-      font-size: 2.5rem;
-      margin-bottom: 16px;
-    }
-
-    .superpower-card h3 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 500;
-      color: var(--gold);
-      margin-bottom: 12px;
-    }
-
-    .superpower-card p {
-      color: rgba(200,215,255,0.65);
-      font-size: 0.95rem;
-    }
-
-    /* ─── CONSTELLATION (interactive 3D section) ─── */
-    #constellation {
-      min-height: 100vh;
-      position: relative;
+      width: 90%;
+      max-width: 700px;
       text-align: center;
-      overflow: visible;
-    }
-
-    #constellation .section-inner {
-      max-width: 100%;
-      overflow: visible;
-    }
-
-    .constellation-header {
-      margin-bottom: 20px;
-    }
-
-    .constellation-header h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.5rem);
-      font-weight: 400;
-      color: #fff;
-      margin-bottom: 12px;
-    }
-
-    .constellation-header p {
-      color: rgba(168,192,255,0.5);
-      font-size: 0.9rem;
-    }
-
-    #three-canvas {
-      width: 100vw;
-      height: 80vh;
-      min-height: 500px;
-      position: relative;
-      margin-left: calc(-50vw + 50%);
-      touch-action: none;
-    }
-
-    #three-canvas canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    @media (max-width: 768px) {
-      #three-canvas {
-        height: 70vh;
-        min-height: 400px;
-      }
-    }
-
-    /* Star labels floating over 3D */
-    .star-label {
-      position: absolute;
-      pointer-events: none;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      color: rgba(200,215,255,0.7);
-      text-shadow: 0 0 10px rgba(0,0,0,0.8);
-      white-space: nowrap;
-      transform: translate(-50%, -100%);
-      padding-bottom: 8px;
-      transition: opacity 0.3s;
-    }
-
-    /* Floating info — seamless, no card */
-    #star-info {
-      position: absolute;
-      z-index: 20;
-      pointer-events: none;
       opacity: 0;
-      transform: translateY(6px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      background: none;
-      border: none;
-      border-radius: 0;
-      padding: 0;
-      max-width: 300px;
-      width: max-content;
-      text-align: left;
+      transform: translateY(20px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      pointer-events: none;
     }
-
-    #star-info.visible {
+    .waypoint-text.active {
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
     }
-
-    #star-info .info-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    #star-info .info-icon { font-size: 1.2rem; }
-
-    #star-info h3 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1rem;
-      font-weight: 400;
-      color: rgba(255,255,255,0.9);
-      text-shadow: 0 0 20px rgba(100,140,255,0.4), 0 2px 8px rgba(0,0,0,0.6);
-    }
-
-    #star-info p {
-      color: rgba(180,200,240,0.6);
-      font-size: 0.78rem;
-      line-height: 1.55;
-      margin-bottom: 8px;
-      text-shadow: 0 1px 6px rgba(0,0,0,0.5);
-    }
-
-    #star-info .tags { line-height: 1.8; }
-
-    .tag {
-      display: inline-block;
-      margin: 2px 4px 2px 0;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 0.6rem;
-      letter-spacing: 0.05em;
-      border: 1px solid rgba(168,192,255,0.12);
-      color: rgba(168,192,255,0.5);
-      background: rgba(168,192,255,0.04);
-    }
-
-    .visit-link {
-      display: inline-block;
-      margin-top: 6px;
-      color: rgba(192,168,255,0.7);
-      text-decoration: none;
-      font-size: 0.75rem;
-      pointer-events: auto;
-      text-shadow: 0 0 10px rgba(192,168,255,0.3);
-      transition: color 0.3s;
-    }
-    .visit-link:hover { color: #fff; }
-
-    @media (max-width: 768px) {
-      #star-info { max-width: 240px; }
-      #star-info h3 { font-size: 0.9rem; }
-      #star-info p { font-size: 0.72rem; }
-    }
-
-    /* Legend below 3D */
-    .legend {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .waypoint-text .label {
       font-size: 0.7rem;
-      color: rgba(168,192,255,0.4);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.3em;
       text-transform: uppercase;
-      cursor: pointer;
-      transition: color 0.3s;
+      margin-bottom: 14px;
+      opacity: 0.5;
     }
-    .legend-item:hover { color: rgba(168,192,255,0.9); }
-
-    .legend-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    /* ─── WORK CARDS ─── */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
-
-    .card {
-      background: rgba(15,18,40,0.6);
-      border: 1px solid rgba(168,192,255,0.08);
-      border-radius: 16px;
-      padding: 32px;
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--blue), transparent);
-      opacity: 0;
-      transition: opacity 0.4s;
-    }
-
-    .card:hover {
-      border-color: rgba(168,192,255,0.2);
-      transform: translateY(-4px);
-    }
-
-    .card:hover::before { opacity: 1; }
-
-    .card-icon {
-      font-size: 2rem;
-      margin-bottom: 16px;
-    }
-
-    .card h3 {
+    .waypoint-text h2 {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #fff;
-      margin-bottom: 10px;
+      font-weight: 300;
+      line-height: 1.15;
+      margin-bottom: 18px;
+      letter-spacing: 0.01em;
+    }
+    .waypoint-text p {
+      font-weight: 300;
+      line-height: 1.7;
+      max-width: 520px;
+      margin: 0 auto;
+      opacity: 0.6;
+    }
+    .waypoint-text .tags {
+      margin-top: 16px;
+    }
+    .waypoint-text .tag {
+      display: inline-block;
+      margin: 3px 4px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      border: 1px solid rgba(168,192,255,0.15);
+      color: rgba(168,192,255,0.5);
     }
 
-    .card p {
-      font-size: 0.88rem;
-      color: rgba(200,215,255,0.6);
+    /* Responsive text sizes */
+    .wp-hero h2 { font-size: clamp(2.4rem, 7vw, 5rem); }
+    .wp-hero p { font-size: clamp(0.95rem, 2.5vw, 1.15rem); }
+    .wp-standard h2 { font-size: clamp(1.6rem, 4.5vw, 2.8rem); }
+    .wp-standard p { font-size: clamp(0.85rem, 2vw, 1rem); }
+
+    /* Color accents per waypoint */
+    .wp-0 h2 { background: linear-gradient(135deg, #a8c0ff, #ffffff 50%, #ffd6a8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .wp-1 .label { color: #a8ffc0; }
+    .wp-1 h2 { color: #fff; }
+    .wp-2 .label { color: #ffd6a8; }
+    .wp-2 h2 { color: #fff; }
+    .wp-3 .label { color: #ffa8f0; }
+    .wp-3 h2 { color: #fff; }
+    .wp-4 .label { color: #c0a8ff; }
+    .wp-4 h2 { color: #fff; }
+    .wp-5 .label { color: #a8e8ff; }
+    .wp-5 h2 { color: #fff; }
+    .wp-6 .label { color: #a8c0ff; }
+    .wp-6 h2 { color: #fff; }
+
+    /* ─── SCROLL HINT ─── */
+    #scroll-hint {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      text-align: center;
+      opacity: 0;
+      animation: fadeIn 1.5s ease 2s forwards;
+      pointer-events: none;
+      transition: opacity 0.6s;
     }
-
-    .card .card-color { height: 2px; opacity: 0.5; margin-top: 20px; border-radius: 1px; }
-
-    /* Section headers */
-    .section-label {
-      font-size: 0.75rem;
+    #scroll-hint.hidden { opacity: 0 !important; }
+    #scroll-hint span {
+      display: block;
+      font-size: 0.65rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(1.8rem, 4vw, 2.5rem);
-      font-weight: 400;
-      color: #fff;
-      margin-bottom: 16px;
-      line-height: 1.2;
-    }
-
-    .section-sub {
-      color: rgba(168,192,255,0.5);
-      max-width: 500px;
-      margin-bottom: 48px;
-      font-size: 0.95rem;
-    }
-
-    /* ─── READING SECTION ─── */
-    .books-row {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-    }
-
-    .book {
-      flex: 1;
-      min-width: 200px;
-      background: rgba(15,18,40,0.4);
-      border: 1px solid rgba(168,192,255,0.08);
-      border-radius: 12px;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .book-emoji { font-size: 2rem; margin-bottom: 12px; }
-
-    .book h4 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 500;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-
-    .book .author {
-      font-size: 0.8rem;
-      color: rgba(168,192,255,0.4);
+      color: rgba(168,192,255,0.35);
       margin-bottom: 8px;
     }
-
-    .book p {
-      font-size: 0.85rem;
-      color: rgba(200,215,255,0.5);
-      font-style: italic;
-    }
-
-    /* ─── CONNECT SECTION ─── */
-    #connect {
-      text-align: center;
-    }
-
-    .connect-columns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      margin: 32px 0;
-      text-align: left;
-    }
-
-    .connect-col h4 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--blue);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .connect-col p {
-      color: rgba(200,215,255,0.5);
-      font-size: 0.9rem;
-    }
-
-    .cta-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 16px 40px;
-      background: linear-gradient(135deg, rgba(168,192,255,0.15), rgba(168,192,255,0.05));
-      border: 1px solid rgba(168,192,255,0.3);
-      border-radius: 50px;
-      color: #fff;
-      text-decoration: none;
-      font-size: 0.9rem;
-      letter-spacing: 0.08em;
-      transition: all 0.4s ease;
-      cursor: pointer;
-    }
-
-    .cta-button:hover {
-      background: rgba(168,192,255,0.15);
-      border-color: rgba(168,192,255,0.6);
-      transform: translateY(-2px);
-      box-shadow: 0 10px 40px rgba(100,140,255,0.15);
-    }
-
-    /* ─── CONTACT FORM ─── */
-    .contact-form {
-      max-width: 480px;
+    .scroll-arrow {
+      width: 20px; height: 20px;
+      border-right: 1px solid rgba(168,192,255,0.3);
+      border-bottom: 1px solid rgba(168,192,255,0.3);
+      transform: rotate(45deg);
       margin: 0 auto;
-      text-align: left;
+      animation: scrollBounce 2s ease infinite;
     }
-
-    .form-group {
-      margin-bottom: 16px;
+    @keyframes scrollBounce {
+      0%, 100% { transform: rotate(45deg) translate(0,0); opacity: 0.3; }
+      50% { transform: rotate(45deg) translate(4px,4px); opacity: 0.8; }
     }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .form-group label {
-      display: block;
-      font-size: 0.75rem;
+    /* ─── PROGRESS DOTS ─── */
+    #progress {
+      position: fixed;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      pointer-events: auto;
+    }
+    .prog-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(168,192,255,0.25);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      position: relative;
+    }
+    .prog-dot.active {
+      background: rgba(168,192,255,0.8);
+      border-color: rgba(168,192,255,0.8);
+      box-shadow: 0 0 12px rgba(168,192,255,0.4);
+    }
+    .prog-dot .prog-label {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.6rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: rgba(168,192,255,0.4);
-      margin-bottom: 6px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
     }
+    .prog-dot:hover .prog-label { opacity: 1; }
 
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 12px 16px;
-      background: rgba(168,192,255,0.04);
-      border: 1px solid rgba(168,192,255,0.12);
-      border-radius: 10px;
-      color: #e0e6f0;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 300;
-      outline: none;
-      transition: border-color 0.3s;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus {
-      border-color: rgba(168,192,255,0.4);
-    }
-
-    .form-group textarea {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .form-group input::placeholder,
-    .form-group textarea::placeholder {
-      color: rgba(168,192,255,0.2);
-    }
-
-    .form-status {
-      text-align: center;
-      margin-top: 16px;
-      font-size: 0.85rem;
-      min-height: 24px;
-    }
-
-    .form-status.success { color: var(--green); }
-    .form-status.error { color: #ff8888; }
-
-    /* ─── SOCIAL BAR ─── */
+    /* ─── CONNECT SECTION (last waypoint) ─── */
     .social-row {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      margin-top: 32px;
+      display: flex; gap: 12px; justify-content: center; margin-top: 24px;
+      flex-wrap: wrap;
     }
-
     .social-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
       border: 1px solid rgba(168,192,255,0.12);
       border-radius: 30px;
       color: rgba(168,192,255,0.5);
       text-decoration: none;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       transition: all 0.3s;
+      pointer-events: auto;
     }
-
     .social-link:hover {
       color: #fff;
       border-color: rgba(168,192,255,0.4);
       background: rgba(168,192,255,0.06);
     }
+    .social-link svg { width: 14px; height: 14px; fill: currentColor; flex-shrink: 0; }
 
-    .social-link svg {
-      width: 16px; height: 16px;
-      fill: currentColor;
-      flex-shrink: 0;
+    /* Contact form */
+    .contact-form {
+      max-width: 400px; margin: 20px auto 0; text-align: left;
+      pointer-events: auto;
     }
-
-    /* ─── FOOTER ─── */
-    footer {
-      text-align: center;
-      padding: 40px 24px;
-      color: rgba(168,192,255,0.2);
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
+    .form-row { margin-bottom: 12px; }
+    .form-row label {
+      display: block; font-size: 0.65rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(168,192,255,0.35); margin-bottom: 4px;
     }
-
-    /* ─── SCROLL REVEAL ─── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
+    .form-row input, .form-row textarea {
+      width: 100%; padding: 10px 14px;
+      background: rgba(168,192,255,0.04);
+      border: 1px solid rgba(168,192,255,0.1);
+      border-radius: 8px; color: #e0e6f0;
+      font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 300;
+      outline: none; transition: border-color 0.3s;
     }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
+    .form-row input:focus, .form-row textarea:focus { border-color: rgba(168,192,255,0.35); }
+    .form-row textarea { min-height: 80px; resize: vertical; }
+    .form-row input::placeholder, .form-row textarea::placeholder { color: rgba(168,192,255,0.18); }
+    .send-btn {
+      display: block; width: 100%; padding: 12px;
+      background: rgba(168,192,255,0.08);
+      border: 1px solid rgba(168,192,255,0.2);
+      border-radius: 8px; color: rgba(168,192,255,0.8);
+      font-family: 'Inter', sans-serif; font-size: 0.85rem;
+      cursor: pointer; transition: all 0.3s; letter-spacing: 0.05em;
+      pointer-events: auto;
     }
+    .send-btn:hover { background: rgba(168,192,255,0.14); border-color: rgba(168,192,255,0.4); color: #fff; }
+    .form-status { text-align: center; margin-top: 10px; font-size: 0.8rem; min-height: 20px; }
+    .form-status.success { color: #a8ffc0; }
+    .form-status.error { color: #ff8888; }
 
     /* ─── MOBILE ─── */
     @media (max-width: 768px) {
-      nav { padding: 14px 20px; }
-
-      .nav-links { gap: 14px; }
-      .nav-links a { font-size: 0.7rem; }
-
-      section { padding: 80px 20px; }
-
-      .about-grid {
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-
-      .stat-row { gap: 24px; }
-
-      .connect-columns {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-
-      .social-row {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      #three-canvas {
-        height: 50vh;
-        min-height: 300px;
-      }
-
-      .star-label { font-size: 0.6rem; }
-
-      .hero-title {
-        font-size: clamp(1.8rem, 8vw, 3rem);
-      }
+      #progress { right: 12px; gap: 10px; }
+      .prog-dot { width: 6px; height: 6px; }
+      .prog-dot .prog-label { display: none; }
+      .social-row { flex-direction: column; align-items: center; }
+      .contact-form { max-width: 90%; }
     }
-
     @media (max-width: 480px) {
-      .nav-links { gap: 10px; }
-      .nav-links a { font-size: 0.65rem; letter-spacing: 0.06em; }
-      .stat-row { flex-wrap: wrap; gap: 16px; }
-      .cards-grid { grid-template-columns: 1fr; }
-      .books-row { flex-direction: column; }
+      .waypoint-text { width: 92%; }
     }
   </style>
 </head>
 <body>
 
-  <!-- FIXED 3D BACKGROUND -->
-  <div id="canvas-container"></div>
-
-  <!-- SCROLLABLE CONTENT -->
-  <div class="content">
-
-    <!-- NAV -->
-    <nav>
-      <div class="nav-name">NG</div>
-      <ul class="nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#constellation">Explore</a></li>
-        <li><a href="#work">Work</a></li>
-        <li><a href="#connect">Connect</a></li>
-      </ul>
-    </nav>
-
-    <!-- HERO -->
-    <section id="hero">
-      <div>
-        <p class="hero-greeting">Hi, I'm</p>
-        <h1 class="hero-title">Nitin Ganneboina</h1>
-        <p class="hero-sub">I lead teams to build robust financial software. I use AI to visualize the impossible. I stay calm when the world panics.</p>
-        <a href="#constellation" class="hero-cta">Explore My Universe ↓</a>
-      </div>
-      <div class="scroll-hint">
-        <span>Scroll</span>
-        <div class="scroll-line"></div>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section id="about">
-      <div class="section-inner reveal">
-        <div class="about-grid">
-          <div class="about-text">
-            <h2>Transforming Finance<br>through <em>Technology</em></h2>
-            <p>By day, I work at the intersection of <strong>Finance and Technology</strong>. I lead development teams to build software products that drive finance transformation for large institutions.</p>
-            <p>My work isn't just about code — it's about translating complex financial needs into <strong>efficient, working software</strong>.</p>
-            <p>When I'm not managing product roadmaps, I'm a creator — deep-diving into <strong>Generative AI</strong>, building autonomous agents, and visualizing stories on screen.</p>
-            <div class="stat-row">
-              <div class="stat">
-                <div class="stat-num">10+</div>
-                <div class="stat-label">Years in Tech</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">Finance</div>
-                <div class="stat-label">Domain</div>
-              </div>
-              <div class="stat">
-                <div class="stat-num">AI</div>
-                <div class="stat-label">Frontier</div>
-              </div>
-            </div>
-          </div>
-          <div class="superpower-card">
-            <div class="icon">🧘</div>
-            <h3>My Superpower: Calm in the Chaos</h3>
-            <p>Software development is rarely a straight line. When high-pressure situations hit — whether it's a critical bug or a tight deadline — I don't panic. My strength lies in slowing down the situation, thinking rationally, and guiding my team through the "panic zone" to find the right solution.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3D CONSTELLATION -->
-    <section id="constellation">
-      <div class="section-inner reveal">
-        <div class="constellation-header">
-          <p class="section-label">Interactive</p>
-          <h2>My Universe</h2>
-          <p>Drag to orbit · Pinch to zoom · Tap a star to discover</p>
-        </div>
-
-        <div id="three-canvas">
-          <div id="star-info">
-            <div class="info-header">
-              <span class="info-icon"></span>
-              <h3></h3>
-            </div>
-            <p></p>
-            <div class="tags"></div>
-          </div>
-        </div>
-
-        <div class="legend" id="legend"></div>
-      </div>
-    </section>
-
-    <!-- WORK -->
-    <section id="work">
-      <div class="section-inner reveal">
-        <p class="section-label">What I Do</p>
-        <h2 class="section-title">Building at the Frontier</h2>
-        <p class="section-sub">From enterprise finance platforms to AI-generated storytelling.</p>
-
-        <div class="cards-grid">
-          <div class="card">
-            <div class="card-icon">💰</div>
-            <h3>Finance Transformation</h3>
-            <p>Leading development teams to build invoicing and reconciliation platforms for major financial institutions. Driving digital transformation at enterprise scale.</p>
-            <div class="card-color" style="background: var(--green);"></div>
-          </div>
-          <div class="card">
-            <div class="card-icon">🤖</div>
-            <h3>AI-Driven Products</h3>
-            <p>Building everything from autonomous agents to SaaS applications. Experimenting with the latest in AI to push what's possible.</p>
-            <div class="card-color" style="background: var(--purple);"></div>
-          </div>
-          <div class="card">
-            <div class="card-icon">🎬</div>
-            <h3>AI Storytelling</h3>
-            <p>Using Google Veo, Flow, and Generative AI to turn raw ideas — stories, rhymes — into visual content. Creator at heart.</p>
-            <div class="card-color" style="background: var(--pink);"></div>
-          </div>
-          <div class="card">
-            <div class="card-icon">👥</div>
-            <h3>Team Leadership</h3>
-            <p>Managing product roadmaps, leading cross-functional teams, and translating complex requirements into delivered software.</p>
-            <div class="card-color" style="background: var(--gold);"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- READING -->
-    <section id="reading">
-      <div class="section-inner reveal">
-        <p class="section-label">Currently Reading</p>
-        <h2 class="section-title">On My Nightstand</h2>
-        <div class="books-row">
-          <div class="book">
-            <div class="book-emoji">📖</div>
-            <h4>Four Agreements</h4>
-            <div class="author">Don Miguel Ruiz</div>
-            <p>A book about how to experience life</p>
-          </div>
-          <div class="book">
-            <div class="book-emoji">🌿</div>
-            <h4>Caraka Samhita</h4>
-            <div class="author">Ancient Text</div>
-            <p>Exploring how our body works according to Ayurveda</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CONNECT -->
-    <section id="connect">
-      <div class="section-inner reveal">
-        <p class="section-label">Let's Talk</p>
-        <h2 class="section-title">Let's Connect</h2>
-        <p class="section-sub" style="margin-left:auto;margin-right:auto;">I thrive on deep 1-on-1 conversations on a wide range of topics. No sales. Just talk.</p>
-
-        <div class="connect-columns">
-          <div class="connect-col">
-            <h4>The Tech Side</h4>
-            <p>Process Efficiency, AI Agents, Space Tech, and Financial Systems.</p>
-          </div>
-          <div class="connect-col">
-            <h4>The Human Side</h4>
-            <p>Cricket, Badminton, History & Culture, and Podcast recommendations.</p>
-          </div>
-        </div>
-
-        <form class="contact-form" id="contact-form" onsubmit="return handleSubmit(event)">
-          <input type="hidden" name="access_key" value="" id="form-key" />
-          <input type="text" name="_gotcha" id="_hp" style="display:none !important;position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" />
-          <div class="form-group">
-            <label for="name">Your Name</label>
-            <input type="text" id="name" name="name" placeholder="Jane Doe" required />
-          </div>
-          <div class="form-group">
-            <label for="email">Your Email</label>
-            <input type="email" id="email" name="email" placeholder="jane@example.com" required />
-          </div>
-          <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" placeholder="Let's talk about..." required></textarea>
-          </div>
-          <div style="text-align:center;">
-            <button type="submit" class="cta-button" id="submit-btn">Send Message ✉</button>
-          </div>
-          <div class="form-status" id="form-status"></div>
-        </form>
-
-        <div class="social-row">
-          <a href="https://github.com/nitinms-ftw" target="_blank" rel="noopener" class="social-link">
-            <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            GitHub
-          </a>
-          <a href="https://www.linkedin.com/in/nitin-g-51778a8b" target="_blank" rel="noopener" class="social-link">
-            <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-            LinkedIn
-          </a>
-          <a href="https://x.com/GanneboinaNitin" target="_blank" rel="noopener" class="social-link">
-            <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-            X / Twitter
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <footer>© 2026 Nitin Ganneboina · Built among the stars</footer>
+  <!-- UI Overlay -->
+  <div id="ui">
+    <!-- Waypoint texts injected by JS -->
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Scroll hint -->
+  <div id="scroll-hint">
+    <span>Scroll to explore</span>
+    <div class="scroll-arrow"></div>
+  </div>
 
+  <!-- Progress dots -->
+  <div id="progress"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
   (function() {
     'use strict';
 
-    // ─── SCROLL REVEAL ───
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.15 });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-    // ─── FULL-PAGE BACKGROUND STARS (lightweight canvas 2D) ───
-    const bgCanvas = document.createElement('canvas');
-    bgCanvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;';
-    document.getElementById('canvas-container').appendChild(bgCanvas);
-    const bgCtx = bgCanvas.getContext('2d');
-
-    const bgStars = [];
-    function initBgStars() {
-      bgCanvas.width = window.innerWidth;
-      bgCanvas.height = window.innerHeight;
-      bgStars.length = 0;
-      const count = Math.min(800, Math.floor(window.innerWidth * window.innerHeight / 2000));
-      for (let i = 0; i < count; i++) {
-        bgStars.push({
-          x: Math.random() * bgCanvas.width,
-          y: Math.random() * bgCanvas.height,
-          r: Math.random() * 1.2 + 0.2,
-          speed: Math.random() * 0.3 + 0.05,
-          phase: Math.random() * Math.PI * 2,
-        });
-      }
-    }
-    initBgStars();
-    window.addEventListener('resize', initBgStars);
-
-    let bgTime = 0;
-    function drawBgStars() {
-      requestAnimationFrame(drawBgStars);
-      bgTime += 0.016;
-      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-      for (const s of bgStars) {
-        const alpha = 0.3 + 0.5 * Math.abs(Math.sin(bgTime * s.speed + s.phase));
-        bgCtx.beginPath();
-        bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        bgCtx.fillStyle = `rgba(180,200,255,${alpha})`;
-        bgCtx.fill();
-      }
-    }
-    drawBgStars();
-
-    // ─── STAR DATA ───
-    const constellations = {
-      'core': {
-        color: '#a8c0ff', label: 'Identity',
-        stars: [
-          { id: 'identity', label: 'Nitin Ganneboina', icon: '⭐', desc: 'Leading at the intersection of Finance and Technology. Translating complex financial needs into efficient, working software.', tags: ['Leader', 'Builder', 'Creator'], pos: [0, 0, 0], size: 2.5 }
-        ]
+    // ═══════════════════════════════════════
+    // WAYPOINT DATA
+    // ═══════════════════════════════════════
+    const waypoints = [
+      {
+        label: '',
+        title: 'Nitin Ganneboina',
+        desc: 'Transforming Finance through Tech. Exploring Stories through AI. I stay calm when the world panics.',
+        tags: [],
+        pos: [0, 0, 0],
+        color: '#a8c0ff',
+        heroClass: 'wp-hero',
+        progLabel: 'Start',
       },
-      'powers': {
-        color: '#ffd6a8', label: 'Superpowers',
-        stars: [
-          { id: 'calm', label: 'Calm in Chaos', icon: '🧘', desc: 'When high-pressure situations hit — I don\'t panic. I slow down, think rationally, and guide my team to the right solution.', tags: ['Resilience', 'Leadership'], pos: [-6, 4, -2], size: 1.8 },
-          { id: 'bridge', label: 'Finance ↔ Tech', icon: '🌉', desc: 'Understanding complex financial requirements and translating them into elegant software solutions.', tags: ['Domain Expert', 'Strategy'], pos: [-4, 6, 3], size: 1.5 }
-        ]
+      {
+        label: 'What I Build',
+        title: 'Finance Transformation',
+        desc: 'Leading development teams to build invoicing and reconciliation platforms for major financial institutions. My work isn\'t just code — it\'s translating complex financial needs into efficient, working software.',
+        tags: ['FinTech', 'Enterprise', 'Platforms', 'Leadership'],
+        pos: [14, 5, -35],
+        color: '#a8ffc0',
+        progLabel: 'Finance',
       },
-      'work': {
-        color: '#a8ffc0', label: 'Work',
-        stars: [
-          { id: 'fintech', label: 'FinTech', icon: '💰', desc: 'Leading development teams to build invoicing and reconciliation platforms for major financial institutions.', tags: ['Enterprise', 'Platforms'], pos: [5, 3, -3], size: 1.8 },
-          { id: 'ai-products', label: 'AI Products', icon: '🤖', desc: 'Building AI-driven products — from autonomous agents to SaaS applications.', tags: ['AI/ML', 'SaaS'], pos: [7, 1, 2], size: 1.5 },
-          { id: 'team-lead', label: 'Leadership', icon: '👥', desc: 'Managing product roadmaps and leading cross-functional teams to deliver.', tags: ['Management', 'Delivery'], pos: [4, 5, 1], size: 1.3 }
-        ]
+      {
+        label: 'My Superpower',
+        title: 'Calm in the Chaos',
+        desc: 'Software development is rarely a straight line. When high-pressure situations hit — critical bugs, tight deadlines — I don\'t panic. My strength lies in slowing down, thinking rationally, and guiding my team through the panic zone to the right solution.',
+        tags: ['Resilience', 'Problem Solving', 'Team Leadership'],
+        pos: [-10, 13, -70],
+        color: '#ffd6a8',
+        progLabel: 'Superpower',
       },
-      'creative': {
-        color: '#ffa8f0', label: 'Creative',
-        stars: [
-          { id: 'storytelling', label: 'AI Stories', icon: '🎬', desc: 'Using Generative AI to produce video content. Taking raw ideas and visualizing them on screen.', tags: ['GenAI', 'Video'], pos: [-5, -3, 4], size: 1.6 },
-          { id: 'gen-ai', label: 'Gen AI', icon: '✨', desc: 'Constantly experimenting with the creative frontiers of AI — image, video, autonomous workflows.', tags: ['Google Veo', 'Flow'], pos: [-7, -1, 1], size: 1.4 }
-        ]
+      {
+        label: 'The Creative Frontier',
+        title: 'AI Storytelling',
+        desc: 'Deep-diving into Generative AI, using tools like Google Veo and Flow to produce video content. I love taking a raw idea — a story, a rhyme — and visualizing it on screen. Creator at heart.',
+        tags: ['Generative AI', 'Google Veo', 'Video', 'Creativity'],
+        pos: [12, -4, -110],
+        color: '#ffa8f0',
+        progLabel: 'Creative',
       },
-      'learning': {
-        color: '#ffe8a8', label: 'Learning',
-        stars: [
-          { id: 'four-agreements', label: 'Books', icon: '📖', desc: 'Currently reading "Four Agreements" by Don Miguel Ruiz and "Caraka Samhita".', tags: ['Philosophy', 'Growth'], pos: [2, -5, -4], size: 1.2 }
-        ]
+      {
+        label: 'Expanding the Toolkit',
+        title: 'Building the Future',
+        desc: 'Expanding my technical frontier by building AI-driven products — experimenting with everything from autonomous agents to SaaS applications. Managing product roadmaps while pushing what\'s possible.',
+        tags: ['AI/ML', 'SaaS', 'Agents', 'Product Management'],
+        pos: [-14, 8, -150],
+        color: '#c0a8ff',
+        progLabel: 'Future',
       },
-      'interests': {
-        color: '#a8e8ff', label: 'Interests',
-        stars: [
-          { id: 'cricket', label: 'Sports', icon: '🏏', desc: 'Cricket and badminton keep the competitive spirit alive.', tags: ['Cricket', 'Badminton'], pos: [-3, -5, -3], size: 1.1 },
-          { id: 'culture', label: 'Culture', icon: '🏛️', desc: 'Deeply curious about history, culture, and how civilizations evolve.', tags: ['History', 'Culture'], pos: [3, -4, 3], size: 1.1 },
-          { id: 'space', label: 'Space', icon: '🚀', desc: 'Fascinated by space technology and engineering marvels pushing humanity beyond Earth.', tags: ['Space', 'Future'], pos: [6, -2, -2], size: 1.1 }
-        ]
+      {
+        label: 'Beyond Work',
+        title: 'The Explorer',
+        desc: 'Currently reading "Four Agreements" by Don Miguel Ruiz and "Caraka Samhita" — ancient Ayurvedic wisdom. Passionate about cricket, badminton, history, culture, space tech, and deep conversations about anything.',
+        tags: ['Books', 'Cricket', 'History', 'Space Tech', 'Ayurveda'],
+        pos: [8, -8, -190],
+        color: '#a8e8ff',
+        progLabel: 'Explorer',
       },
-      'socials': {
-        color: '#c0a8ff', label: 'Connect',
-        stars: [
-          { id: 'github', label: 'GitHub', icon: '💻', desc: 'Open source projects and experiments.', tags: ['Code', 'OSS'], pos: [-2, -3, 5], size: 1.3, link: 'https://github.com/nitinms-ftw' },
-          { id: 'linkedin', label: 'LinkedIn', icon: '🔗', desc: 'Professional network and industry insights.', tags: ['Professional'], pos: [1, -2, 6], size: 1.3, link: 'https://www.linkedin.com/in/nitin-g-51778a8b' },
-          { id: 'twitter', label: 'X', icon: '🐦', desc: 'Thoughts on AI, tech, and the creative frontier.', tags: ['Updates'], pos: [4, -1, 5], size: 1.3, link: 'https://x.com/GanneboinaNitin' }
-        ]
-      }
-    };
-
-    const connections = [
-      ['identity','calm'],['identity','bridge'],['identity','fintech'],['identity','ai-products'],
-      ['identity','storytelling'],['calm','bridge'],['fintech','ai-products'],['fintech','team-lead'],
-      ['ai-products','team-lead'],['storytelling','gen-ai'],['ai-products','gen-ai'],
-      ['identity','four-agreements'],['identity','cricket'],['bridge','fintech'],['calm','team-lead'],
-      ['identity','github'],['identity','linkedin'],['identity','twitter'],
-      ['github','linkedin'],['linkedin','twitter'],['culture','space'],['cricket','culture']
+      {
+        label: 'Let\'s Talk',
+        title: 'Connect With Me',
+        desc: 'I thrive on deep 1-on-1 conversations. Tech side: Process Efficiency, AI Agents, Space Tech, Financial Systems. Human side: Cricket, Badminton, History & Culture, Podcasts. No sales. Just talk.',
+        tags: [],
+        pos: [0, 2, -230],
+        color: '#a8c0ff',
+        progLabel: 'Connect',
+        isConnect: true,
+      },
     ];
 
-    // ─── THREE.JS (scoped to #three-canvas) ───
-    const container = document.getElementById('three-canvas');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 500);
-    camera.position.set(0, 0, 20);
+    const totalWaypoints = waypoints.length;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, powerPreference: 'high-performance' });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    container.appendChild(renderer.domElement);
+    // ═══════════════════════════════════════
+    // GENERATE UI
+    // ═══════════════════════════════════════
+    const ui = document.getElementById('ui');
+    const progressEl = document.getElementById('progress');
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.enablePan = false;
-    controls.minDistance = 8;
-    controls.maxDistance = 35;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.4;
-    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY };
+    waypoints.forEach((wp, i) => {
+      // Waypoint text
+      const div = document.createElement('div');
+      div.className = `waypoint-text ${i === 0 ? 'wp-hero' : 'wp-standard'} wp-${i}`;
+      div.id = `wp-${i}`;
+      let html = '';
+      if (wp.label) html += `<div class="label">${wp.label}</div>`;
+      html += `<h2>${wp.title}</h2>`;
+      html += `<p>${wp.desc}</p>`;
+      if (wp.tags.length) html += `<div class="tags">${wp.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
+      if (wp.isConnect) {
+        html += `
+          <div class="social-row">
+            <a href="https://github.com/nitinms-ftw" target="_blank" rel="noopener" class="social-link">
+              <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+              GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/nitin-g-51778a8b" target="_blank" rel="noopener" class="social-link">
+              <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </a>
+            <a href="https://x.com/GanneboinaNitin" target="_blank" rel="noopener" class="social-link">
+              <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              X / Twitter
+            </a>
+          </div>
+          <form class="contact-form" id="contact-form" onsubmit="return handleSubmit(event)">
+            <input type="hidden" name="access_key" value="" id="form-key" />
+            <input type="text" name="_gotcha" id="_hp" style="display:none!important;position:absolute;left:-9999px;" tabindex="-1" autocomplete="off" />
+            <div class="form-row">
+              <label>Your Name</label>
+              <input type="text" id="c-name" placeholder="Jane Doe" required />
+            </div>
+            <div class="form-row">
+              <label>Your Email</label>
+              <input type="email" id="c-email" placeholder="jane@example.com" required />
+            </div>
+            <div class="form-row">
+              <label>Message</label>
+              <textarea id="c-msg" placeholder="Let's talk about..."></textarea>
+            </div>
+            <button type="submit" class="send-btn" id="submit-btn">Send Message ✉</button>
+            <div class="form-status" id="form-status"></div>
+          </form>
+        `;
+      }
+      div.innerHTML = html;
+      ui.appendChild(div);
 
-    // Local stars inside 3D view
-    const localStarCount = 600;
-    const lGeo = new THREE.BufferGeometry();
-    const lPos = new Float32Array(localStarCount * 3);
-    const lSizes = new Float32Array(localStarCount);
-    for (let i = 0; i < localStarCount; i++) {
-      lPos[i*3] = (Math.random()-0.5)*120;
-      lPos[i*3+1] = (Math.random()-0.5)*120;
-      lPos[i*3+2] = (Math.random()-0.5)*120;
-      lSizes[i] = Math.random()*1.5+0.3;
-    }
-    lGeo.setAttribute('position', new THREE.Float32BufferAttribute(lPos,3));
-    lGeo.setAttribute('size', new THREE.Float32BufferAttribute(lSizes,1));
-
-    const lMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
-      vertexShader: `
-        attribute float size;
-        uniform float uTime;
-        varying float vA;
-        void main(){
-          vec4 mv = modelViewMatrix * vec4(position,1.0);
-          gl_PointSize = size * (100.0 / -mv.z);
-          gl_Position = projectionMatrix * mv;
-          vA = 0.3 + 0.5 * abs(sin(uTime*0.4 + position.x*0.1));
-        }`,
-      fragmentShader: `
-        varying float vA;
-        void main(){
-          float d = length(gl_PointCoord - 0.5)*2.0;
-          if(d>1.0) discard;
-          gl_FragColor = vec4(0.7,0.8,1.0,(1.0-d*d)*vA*0.5);
-        }`,
-      transparent: true, depthWrite: false
+      // Progress dot
+      const dot = document.createElement('div');
+      dot.className = 'prog-dot';
+      dot.innerHTML = `<span class="prog-label">${wp.progLabel}</span>`;
+      dot.addEventListener('click', () => { targetProgress = i / (totalWaypoints - 1); });
+      progressEl.appendChild(dot);
     });
-    scene.add(new THREE.Points(lGeo, lMat));
 
-    // ─── Constellation stars ───
-    const starMap = {};
-    const starMeshes = [];
-    const labelEls = [];
+    // ═══════════════════════════════════════
+    // THREE.JS SCENE
+    // ═══════════════════════════════════════
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x030108, 0.003);
 
-    const glowCache = {};
-    function glowTex(color) {
-      if (glowCache[color]) return glowCache[color];
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 600);
+    const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.setClearColor(0x030108);
+    document.body.prepend(renderer.domElement);
+
+    // ═══════════════════════════════════════
+    // CAMERA PATH (CatmullRom spline)
+    // ═══════════════════════════════════════
+    const pathPoints = waypoints.map(w => new THREE.Vector3(...w.pos));
+    // Add control points for smooth entry/exit
+    const entryPt = pathPoints[0].clone().add(new THREE.Vector3(0, 0, 15));
+    const exitPt = pathPoints[pathPoints.length - 1].clone().add(new THREE.Vector3(0, 0, -15));
+    const allPathPts = [entryPt, ...pathPoints, exitPt];
+    const cameraPath = new THREE.CatmullRomCurve3(allPathPts, false, 'catmullrom', 0.3);
+
+    // Map waypoint indices to progress values on the spline
+    // entryPt is index 0, waypoints are 1..N, exitPt is N+1
+    const totalPts = allPathPts.length;
+    const wpProgress = waypoints.map((_, i) => (i + 1) / (totalPts - 1));
+
+    // ═══════════════════════════════════════
+    // STARFIELD (layered for depth)
+    // ═══════════════════════════════════════
+    function makeStars(count, spread, sizeRange, brightness) {
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const sizes = new Float32Array(count);
+      const seeds = new Float32Array(count);
+      for (let i = 0; i < count; i++) {
+        // Distribute along the camera path with spread
+        const t = Math.random();
+        const pathPt = cameraPath.getPointAt(t);
+        pos[i*3]   = pathPt.x + (Math.random() - 0.5) * spread;
+        pos[i*3+1] = pathPt.y + (Math.random() - 0.5) * spread;
+        pos[i*3+2] = pathPt.z + (Math.random() - 0.5) * spread;
+        sizes[i] = sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0]);
+        seeds[i] = Math.random() * 6.28;
+      }
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+      geo.setAttribute('seed', new THREE.Float32BufferAttribute(seeds, 1));
+
+      const mat = new THREE.ShaderMaterial({
+        uniforms: { uTime: { value: 0 }, uBright: { value: brightness } },
+        vertexShader: `
+          attribute float size;
+          attribute float seed;
+          uniform float uTime;
+          varying float vAlpha;
+          void main() {
+            vec4 mv = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (120.0 / -mv.z);
+            gl_Position = projectionMatrix * mv;
+            vAlpha = 0.3 + 0.7 * abs(sin(uTime * 0.4 + seed));
+          }
+        `,
+        fragmentShader: `
+          uniform float uBright;
+          varying float vAlpha;
+          void main() {
+            float d = length(gl_PointCoord - 0.5) * 2.0;
+            if (d > 1.0) discard;
+            float a = (1.0 - d * d) * vAlpha * uBright;
+            gl_FragColor = vec4(0.75, 0.82, 1.0, a);
+          }
+        `,
+        transparent: true, depthWrite: false,
+      });
+      return { points: new THREE.Points(geo, mat), mat };
+    }
+
+    // Close stars (bright, small spread)
+    const nearStars = makeStars(800, 60, [0.3, 2.0], 0.7);
+    scene.add(nearStars.points);
+    // Far stars (dim, wide spread)
+    const farStars = makeStars(1500, 200, [0.2, 1.2], 0.35);
+    scene.add(farStars.points);
+
+    // ═══════════════════════════════════════
+    // WAYPOINT STARS (glowing orbs)
+    // ═══════════════════════════════════════
+    function createGlow(color) {
       const c = document.createElement('canvas');
       c.width = 64; c.height = 64;
       const ctx = c.getContext('2d');
       const g = ctx.createRadialGradient(32,32,0,32,32,32);
       g.addColorStop(0, color);
-      g.addColorStop(0.4, color+'88');
+      g.addColorStop(0.3, color + 'aa');
+      g.addColorStop(0.6, color + '33');
       g.addColorStop(1, 'transparent');
       ctx.fillStyle = g;
       ctx.fillRect(0,0,64,64);
-      const t = new THREE.CanvasTexture(c);
-      glowCache[color] = t;
-      return t;
+      return new THREE.CanvasTexture(c);
     }
 
-    for (const [gk, group] of Object.entries(constellations)) {
-      const col = new THREE.Color(group.color);
-      for (const star of group.stars) {
-        const geo = new THREE.SphereGeometry(star.size * 0.2, 48, 48);
-        const mat = new THREE.MeshBasicMaterial({ color: col });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(...star.pos);
-        mesh.userData = { starId: star.id };
-        scene.add(mesh);
-        starMeshes.push(mesh);
+    const wpMeshes = [];
+    waypoints.forEach((wp, i) => {
+      const col = new THREE.Color(wp.color);
+      // Sphere
+      const size = i === 0 ? 0.6 : 0.35;
+      const geo = new THREE.SphereGeometry(size, 48, 48);
+      const mat = new THREE.MeshBasicMaterial({ color: col });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(...wp.pos);
+      scene.add(mesh);
 
-        const sMat = new THREE.SpriteMaterial({ map: glowTex(group.color), transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending });
-        const sprite = new THREE.Sprite(sMat);
-        sprite.scale.set(star.size*0.7, star.size*0.7, 1);
-        sprite.position.set(...star.pos);
-        scene.add(sprite);
-
-        // Label
-        const label = document.createElement('div');
-        label.className = 'star-label';
-        label.textContent = star.label;
-        label.style.color = group.color;
-        container.appendChild(label);
-        labelEls.push({ el: label, mesh });
-
-        starMap[star.id] = { mesh, data: star, group: gk, color: group.color, sprite };
-      }
-    }
-
-    // Lines
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x4466aa, transparent: true, opacity: 0.25 });
-    for (const [a,b] of connections) {
-      if (!starMap[a] || !starMap[b]) continue;
-      const g = new THREE.BufferGeometry().setFromPoints([starMap[a].mesh.position, starMap[b].mesh.position]);
-      scene.add(new THREE.Line(g, lineMat));
-    }
-
-    // Legend
-    const legendEl = document.getElementById('legend');
-    for (const [key, group] of Object.entries(constellations)) {
-      const item = document.createElement('div');
-      item.className = 'legend-item';
-      item.innerHTML = `<span class="legend-dot" style="background:${group.color}"></span>${group.label}`;
-      item.addEventListener('click', () => {
-        const stars = group.stars;
-        const center = new THREE.Vector3();
-        stars.forEach(s => center.add(new THREE.Vector3(...s.pos)));
-        center.divideScalar(stars.length);
-        animCam(center.clone().add(new THREE.Vector3(3,2,8)), center);
+      // Inner glow
+      const sMat = new THREE.SpriteMaterial({
+        map: createGlow(wp.color),
+        transparent: true, opacity: 0.8,
+        depthWrite: false, blending: THREE.AdditiveBlending,
       });
-      legendEl.appendChild(item);
+      const sprite = new THREE.Sprite(sMat);
+      const glowSize = i === 0 ? 4 : 2.5;
+      sprite.scale.set(glowSize, glowSize, 1);
+      sprite.position.set(...wp.pos);
+      scene.add(sprite);
+
+      wpMeshes.push({ mesh, sprite, baseGlow: glowSize });
+    });
+
+    // ═══════════════════════════════════════
+    // PATH LINE (connecting waypoints)
+    // ═══════════════════════════════════════
+    const pathLineGeo = new THREE.BufferGeometry();
+    const pathLinePts = [];
+    for (let i = 0; i <= 300; i++) {
+      const pt = cameraPath.getPointAt(i / 300);
+      pathLinePts.push(pt.x, pt.y, pt.z);
+    }
+    pathLineGeo.setAttribute('position', new THREE.Float32BufferAttribute(pathLinePts, 3));
+    const pathLineMat = new THREE.LineBasicMaterial({
+      color: 0x334477,
+      transparent: true,
+      opacity: 0.12,
+    });
+    scene.add(new THREE.Line(pathLineGeo, pathLineMat));
+
+    // ═══════════════════════════════════════
+    // NEBULA CLOUDS (colored ambiance near waypoints)
+    // ═══════════════════════════════════════
+    function createNebula(color, opacity) {
+      const c = document.createElement('canvas');
+      c.width = 128; c.height = 128;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(64,64,0,64,64,64);
+      g.addColorStop(0, color + Math.round(opacity * 255).toString(16).padStart(2,'0'));
+      g.addColorStop(0.5, color + '11');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,128,128);
+      return new THREE.CanvasTexture(c);
     }
 
-    // ─── Interaction ───
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2();
-    const infoEl = document.getElementById('star-info');
-    let selected = null;
+    waypoints.forEach((wp, i) => {
+      if (i === 0 || i === waypoints.length - 1) return;
+      const nMat = new THREE.SpriteMaterial({
+        map: createNebula(wp.color, 0.06),
+        transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const nebula = new THREE.Sprite(nMat);
+      nebula.scale.set(30, 30, 1);
+      const p = wp.pos;
+      nebula.position.set(p[0] + (Math.random()-0.5)*5, p[1] + (Math.random()-0.5)*5, p[2] - 5);
+      scene.add(nebula);
+    });
 
-    function onPointer(e) {
-      const rect = container.getBoundingClientRect();
-      const cx = (e.touches ? e.touches[0].clientX : e.clientX);
-      const cy = (e.touches ? e.touches[0].clientY : e.clientY);
-      pointer.x = ((cx - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((cy - rect.top) / rect.height) * 2 + 1;
-    }
+    // ═══════════════════════════════════════
+    // NAVIGATION STATE
+    // ═══════════════════════════════════════
+    let progress = 0;          // Current smooth progress (0-1)
+    let targetProgress = 0;    // Target progress (driven by input)
+    const speed = 0.035;       // How fast we move per scroll tick
+    let currentWaypoint = 0;
+    let lastTime = performance.now();
 
-    function positionInfoAtStar(starId) {
-      const s = starMap[starId];
-      if (!s) return;
-      const v = s.mesh.position.clone().project(camera);
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      const sx = (v.x * 0.5 + 0.5) * w;
-      const sy = (-v.y * 0.5 + 0.5) * h;
+    // ═══════════════════════════════════════
+    // INPUT HANDLING
+    // ═══════════════════════════════════════
 
-      const pw = infoEl.offsetWidth || 300;
-      const ph = infoEl.offsetHeight || 150;
+    // Wheel (desktop)
+    window.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = Math.sign(e.deltaY) * speed;
+      targetProgress = Math.max(0, Math.min(1, targetProgress + delta));
+    }, { passive: false });
 
-      // Position to the right of the star, or left if near right edge
-      let px = sx + 24;
-      let py = sy - ph / 2;
-      if (px + pw > w - 16) px = sx - pw - 24;
-      if (py < 16) py = 16;
-      if (py + ph > h - 16) py = h - ph - 16;
+    // Touch (mobile)
+    let touchStartY = 0;
+    let touchStartProgress = 0;
+    window.addEventListener('touchstart', (e) => {
+      // Don't intercept form inputs
+      if (e.target.closest('.contact-form') || e.target.closest('.social-link')) return;
+      touchStartY = e.touches[0].clientY;
+      touchStartProgress = targetProgress;
+    }, { passive: true });
 
-      infoEl.style.left = px + 'px';
-      infoEl.style.top = py + 'px';
-    }
+    window.addEventListener('touchmove', (e) => {
+      if (e.target.closest('.contact-form') || e.target.closest('.social-link')) return;
+      e.preventDefault();
+      const deltaY = touchStartY - e.touches[0].clientY;
+      const sensitivity = 1.8 / window.innerHeight;
+      targetProgress = Math.max(0, Math.min(1, touchStartProgress + deltaY * sensitivity));
+    }, { passive: false });
 
-    function onClick(e) {
-      onPointer(e);
-      raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(starMeshes);
-      if (hits.length > 0) {
-        const id = hits[0].object.userData.starId;
-        const s = starMap[id];
-        selected = id;
-
-        // Build content
-        let tagsHtml = s.data.tags.map(t => `<span class="tag">${t}</span>`).join('');
-        let linkHtml = s.data.link ? `<a href="${s.data.link}" target="_blank" rel="noopener" class="visit-link">Visit →</a>` : '';
-        infoEl.innerHTML = `
-          <div class="info-header">
-            <span class="info-icon">${s.data.icon}</span>
-            <h3>${s.data.label}</h3>
-          </div>
-          <p>${s.data.desc}</p>
-          <div class="tags">${tagsHtml}${linkHtml}</div>
-        `;
-
-        // Position at the star and show
-        positionInfoAtStar(id);
-        infoEl.classList.add('visible');
-
-        const target = s.mesh.position.clone();
-        animCam(target.clone().add(new THREE.Vector3(2,1.5,5)), target);
-      } else {
-        selected = null;
-        infoEl.classList.remove('visible');
-      }
-    }
-
-    container.addEventListener('click', onClick);
-    container.addEventListener('touchend', (e) => {
-      if (e.changedTouches.length === 1) {
-        const te = { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
-        onClick(te);
+    // Keyboard
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault();
+        // Jump to next waypoint
+        const next = Math.min(currentWaypoint + 1, totalWaypoints - 1);
+        targetProgress = wpProgress[next];
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = Math.max(currentWaypoint - 1, 0);
+        targetProgress = wpProgress[prev];
       }
     });
 
-    // Hover cursor (desktop only)
-    container.addEventListener('mousemove', (e) => {
-      onPointer(e);
-      raycaster.setFromCamera(pointer, camera);
-      const hits = raycaster.intersectObjects(starMeshes);
-      container.style.cursor = hits.length > 0 ? 'pointer' : 'grab';
-    });
-
-    function animCam(pos, target) {
-      controls.autoRotate = false;
-      const sP = camera.position.clone(), sT = controls.target.clone();
-      const dur = 1200, start = Date.now();
-      function step() {
-        const t = Math.min((Date.now()-start)/dur, 1);
-        const e = t<0.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
-        camera.position.lerpVectors(sP, pos, e);
-        controls.target.lerpVectors(sT, target, e);
-        controls.update();
-        if (t<1) requestAnimationFrame(step);
-        else { controls.autoRotate = true; controls.autoRotateSpeed = 0.2; }
-      }
-      step();
-    }
-
-    // ─── Update labels + info panel position ───
-    function updateLabels() {
-      const w = container.clientWidth, h = container.clientHeight;
-      for (const { el, mesh } of labelEls) {
-        const v = mesh.position.clone().project(camera);
-        if (v.z > 1) { el.style.opacity = '0'; continue; }
-        const x = (v.x * 0.5 + 0.5) * w;
-        const y = (-v.y * 0.5 + 0.5) * h;
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
-        // Fade based on distance
-        const dist = camera.position.distanceTo(mesh.position);
-        el.style.opacity = dist < 30 ? '1' : '0';
-      }
-      // Keep info panel attached to selected star
-      if (selected && infoEl.classList.contains('visible')) {
-        positionInfoAtStar(selected);
-      }
-    }
-
-    // ─── Animate ───
-    const clock = new THREE.Clock();
-    let threeVisible = false;
-    const threeObserver = new IntersectionObserver(([e]) => { threeVisible = e.isIntersecting; }, { threshold: 0.05 });
-    threeObserver.observe(container);
+    // ═══════════════════════════════════════
+    // ANIMATION LOOP
+    // ═══════════════════════════════════════
+    const scrollHint = document.getElementById('scroll-hint');
+    const progDots = document.querySelectorAll('.prog-dot');
+    const wpTextEls = waypoints.map((_, i) => document.getElementById(`wp-${i}`));
 
     function animate() {
       requestAnimationFrame(animate);
-      if (!threeVisible) return; // Don't render when off-screen
-      lMat.uniforms.uTime.value = clock.getElapsedTime();
-      controls.update();
+
+      const now = performance.now();
+      const dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
+
+      // Smooth progress interpolation
+      const lerpSpeed = 2.5;
+      progress += (targetProgress - progress) * Math.min(lerpSpeed * dt * 4, 1);
+      progress = Math.max(0, Math.min(1, progress));
+
+      // Camera position on spline
+      const camT = Math.max(0.001, Math.min(0.999, progress));
+      const camPos = cameraPath.getPointAt(camT);
+      camera.position.copy(camPos);
+
+      // Look ahead on path
+      const lookT = Math.min(camT + 0.015, 0.999);
+      const lookAt = cameraPath.getPointAt(lookT);
+      camera.lookAt(lookAt);
+
+      // Subtle camera roll based on lateral movement
+      const tangent = cameraPath.getTangentAt(camT);
+      camera.rotation.z = -tangent.x * 0.08;
+
+      // Update star twinkle
+      const elapsed = now * 0.001;
+      nearStars.mat.uniforms.uTime.value = elapsed;
+      farStars.mat.uniforms.uTime.value = elapsed;
+
+      // Pulse waypoint glows
+      wpMeshes.forEach((wm, i) => {
+        const pulse = 1 + 0.15 * Math.sin(elapsed * 1.5 + i * 1.7);
+        wm.sprite.scale.setScalar(wm.baseGlow * pulse);
+        // Brighten when camera is near
+        const dist = camera.position.distanceTo(wm.mesh.position);
+        wm.sprite.material.opacity = dist < 15 ? 0.9 : 0.5;
+      });
+
+      // Determine active waypoint
+      let closest = 0;
+      let closestDist = Infinity;
+      wpProgress.forEach((wp, i) => {
+        const d = Math.abs(progress - wp);
+        if (d < closestDist) { closestDist = d; closest = i; }
+      });
+      currentWaypoint = closest;
+
+      // Update waypoint text visibility
+      wpTextEls.forEach((el, i) => {
+        const dist = Math.abs(progress - wpProgress[i]);
+        const threshold = 0.055;
+        if (dist < threshold) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      // Update progress dots
+      progDots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentWaypoint);
+      });
+
+      // Hide scroll hint after first movement
+      if (progress > 0.01) scrollHint.classList.add('hidden');
+
       renderer.render(scene, camera);
-      updateLabels();
     }
+
     animate();
 
-    // Resize
-    function onResize() {
-      const w = container.clientWidth, h = container.clientHeight;
-      camera.aspect = w / h;
+    // ═══════════════════════════════════════
+    // RESIZE
+    // ═══════════════════════════════════════
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    }
-    window.addEventListener('resize', onResize);
-    onResize();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
   })();
 
-  // ─── Contact Form Handler ───
-  // Key split + assembled at runtime (not plain text in source)
+  // ═══════════════════════════════════════
+  // CONTACT FORM
+  // ═══════════════════════════════════════
   const _p = ['4c640b23','07af','4c37','b7df','c4a277e290f3'];
   document.getElementById('form-key').value = _p.join('-');
-
   let _lastSubmit = 0;
 
   async function handleSubmit(e) {
@@ -1424,46 +739,37 @@
     const btn = document.getElementById('submit-btn');
     const status = document.getElementById('form-status');
     const form = document.getElementById('contact-form');
-
-    // Rate limit: 1 submission per 30 seconds
     const now = Date.now();
     if (now - _lastSubmit < 30000) {
       status.textContent = 'Please wait before sending again.';
       status.className = 'form-status error';
       return;
     }
-
-    // Honeypot check (bot trap)
     const hp = document.getElementById('_hp');
     if (hp && hp.value) return;
-
     btn.textContent = 'Sending...';
     btn.disabled = true;
     status.textContent = '';
-    status.className = 'form-status';
-
     try {
       const resp = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           access_key: document.getElementById('form-key').value,
-          name: document.getElementById('name').value,
-          email: document.getElementById('email').value,
-          message: document.getElementById('message').value,
+          name: document.getElementById('c-name').value,
+          email: document.getElementById('c-email').value,
+          message: document.getElementById('c-msg').value,
           subject: 'New message from nitinganneboina.com',
           botcheck: '',
         })
       });
       const data = await resp.json();
       if (data.success) {
-        status.textContent = '✓ Message sent! I\'ll get back to you soon.';
+        status.textContent = '✓ Sent! I\'ll get back to you soon.';
         status.className = 'form-status success';
         form.reset();
         _lastSubmit = now;
-      } else {
-        throw new Error('Failed');
-      }
+      } else { throw new Error(); }
     } catch (err) {
       status.textContent = 'Something went wrong. Please try again.';
       status.className = 'form-status error';
