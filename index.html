@@ -988,16 +988,58 @@
     }
 
     const soundBtn = document.getElementById('sound-btn');
-    soundBtn.addEventListener('click', () => {
+
+    // Auto-start sound on first user interaction (browsers require gesture)
+    let audioStarted = false;
+    function autoStartAudio() {
+      if (audioStarted) return;
+      audioStarted = true;
       initAudio();
+      soundOn = true;
+      soundBtn.textContent = '🔊';
+      if (padGainNode) {
+        padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 1.5);
+      }
+    }
+    // Listen for any first interaction to unlock audio
+    ['click','touchstart','wheel','keydown'].forEach(evt => {
+      document.addEventListener(evt, autoStartAudio, { once: true, passive: true });
+    });
+
+    // Manual toggle still works
+    soundBtn.addEventListener('click', () => {
+      if (!audioStarted) { autoStartAudio(); return; }
       soundOn = !soundOn;
       soundBtn.textContent = soundOn ? '🔊' : '🔇';
-      if(soundOn && padGainNode) {
-        padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime+1.0);
-      } else if(!soundOn && padGainNode) {
-        padGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.5);
-        whooshGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
+      if (soundOn && padGainNode) {
+        audioCtx.resume();
+        padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.5);
+      } else if (!soundOn && padGainNode) {
+        padGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+        whooshGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
       }
+    });
+
+    // Pause/resume sound when user leaves/returns to the tab
+    document.addEventListener('visibilitychange', () => {
+      if (!audioCtx || !audioStarted) return;
+      if (document.hidden) {
+        // Tab hidden — mute
+        audioCtx.suspend();
+      } else {
+        // Tab visible — resume if sound was on
+        if (soundOn) {
+          audioCtx.resume();
+        }
+      }
+    });
+
+    // Also handle window blur/focus for mobile app-switching
+    window.addEventListener('blur', () => {
+      if (audioCtx && audioStarted) audioCtx.suspend();
+    });
+    window.addEventListener('focus', () => {
+      if (audioCtx && audioStarted && soundOn) audioCtx.resume();
     });
 
     // ═══════════════════════════════════════
@@ -1046,61 +1088,45 @@
     window.addEventListener('wheel', onWheel, {passive:false});
     touchLayer.addEventListener('wheel', onWheel, {passive:false});
 
-    // Touch — also snap-based
-    let ty0=0, tp0=0, swiping=false, lastTouchY=0, touchAccum=0;
-    const TOUCH_THRESHOLD = 60; // pixels needed to swipe to next section
+    // Touch — light swipe detection
+    let ty0=0, swiping=false, swipeLocked=false;
+    const TOUCH_THRESHOLD = 30; // pixels — very light swipe
 
-    touchLayer.addEventListener('touchstart', (e) => {
-      ty0=e.touches[0].clientY; tp0=tgt; swiping=true;
-      lastTouchY = ty0; touchAccum = 0;
-    }, {passive:true});
-    touchLayer.addEventListener('touchmove', (e) => {
-      if(!swiping) return;
-      e.preventDefault();
-      const y = e.touches[0].clientY;
-      const totalDy = ty0 - y;
-
-      // Check if we've swiped enough to move to next waypoint
-      if (Math.abs(totalDy) > TOUCH_THRESHOLD && touchAccum === 0) {
-        const dir = Math.sign(totalDy);
-        const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
-        if (nextWP !== targetWP) {
-          targetWP = nextWP;
-          tgt = wpT[targetWP];
-          touchAccum = 1; // prevent multiple triggers per swipe
-        }
-      }
-      lastTouchY = y;
-    }, {passive:false});
-    touchLayer.addEventListener('touchend', ()=>{
-      swiping=false; touchAccum=0;
-    }, {passive:true});
-
-    document.addEventListener('touchstart', (e) => {
+    function handleTouchStart(e) {
       if(e.target.closest('input,textarea,button,a')) return;
-      ty0=e.touches[0].clientY; tp0=tgt; swiping=true;
-      lastTouchY = ty0; touchAccum=0;
-    }, {passive:true});
-    document.addEventListener('touchmove', (e) => {
-      if(!swiping || e.target.closest('input,textarea')) return;
+      ty0 = e.touches[0].clientY;
+      swiping = true;
+      swipeLocked = false;
+    }
+    function handleTouchMove(e) {
+      if(!swiping || swipeLocked) return;
+      if(e.target.closest('input,textarea')) return;
       e.preventDefault();
-      const y = e.touches[0].clientY;
-      const totalDy = ty0 - y;
+      const dy = ty0 - e.touches[0].clientY;
 
-      if (Math.abs(totalDy) > TOUCH_THRESHOLD && touchAccum === 0) {
-        const dir = Math.sign(totalDy);
+      if (Math.abs(dy) > TOUCH_THRESHOLD) {
+        const dir = Math.sign(dy);
         const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
         if (nextWP !== targetWP) {
           targetWP = nextWP;
           tgt = wpT[targetWP];
-          touchAccum = 1;
         }
+        // Lock until finger lifts — one section per swipe
+        swipeLocked = true;
       }
-      lastTouchY = y;
-    }, {passive:false});
-    document.addEventListener('touchend', ()=>{
-      swiping=false; touchAccum=0;
-    }, {passive:true});
+    }
+    function handleTouchEnd() {
+      swiping = false;
+      swipeLocked = false;
+    }
+
+    // Attach to both touchLayer and document for full coverage
+    touchLayer.addEventListener('touchstart', handleTouchStart, {passive:true});
+    touchLayer.addEventListener('touchmove', handleTouchMove, {passive:false});
+    touchLayer.addEventListener('touchend', handleTouchEnd, {passive:true});
+    document.addEventListener('touchstart', handleTouchStart, {passive:true});
+    document.addEventListener('touchmove', handleTouchMove, {passive:false});
+    document.addEventListener('touchend', handleTouchEnd, {passive:true});
 
     // Keyboard — already snaps perfectly
     window.addEventListener('keydown', (e) => {
