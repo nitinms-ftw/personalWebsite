@@ -44,6 +44,12 @@
     .waypoint-text.active {
       opacity: 1;
       transform: translateY(0);
+      pointer-events: none;
+    }
+    /* Only allow pointer events on interactive elements inside */
+    .waypoint-text.active .social-link,
+    .waypoint-text.active .contact-form,
+    .waypoint-text.active .send-btn {
       pointer-events: auto;
     }
     .waypoint-text .label {
@@ -238,6 +244,28 @@
     .form-status.success { color: #a8ffc0; }
     .form-status.error { color: #ff8888; }
 
+    /* ─── COSMIC QUOTE ─── */
+    #cosmic-quote {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      font-size: 0.72rem;
+      font-style: italic;
+      line-height: 1.7;
+      letter-spacing: 0.03em;
+      color: rgba(168,192,255,0.0);
+      pointer-events: none;
+      transition: color 1.5s ease;
+    }
+    #cosmic-quote.visible {
+      color: rgba(168,192,255,0.25);
+    }
+
     /* ─── MOBILE ─── */
     @media (max-width: 768px) {
       #progress { right: 12px; gap: 10px; }
@@ -262,6 +290,11 @@
   <div id="scroll-hint">
     <span>Scroll to explore</span>
     <div class="scroll-arrow"></div>
+  </div>
+
+  <!-- Cosmic quote — fades in at the end of the journey -->
+  <div id="cosmic-quote">
+    "We are a way for the cosmos to know itself. A pale blue dot suspended in a sunbeam — tiny, fragile, and fleeting. None of this was promised. Enjoy it while you last."
   </div>
 
   <!-- Progress dots -->
@@ -604,23 +637,29 @@
       targetProgress = Math.max(0, Math.min(1, targetProgress + delta));
     }, { passive: false });
 
-    // Touch (mobile)
+    // Touch (mobile) — capture on document for full-screen swipe
     let touchStartY = 0;
     let touchStartProgress = 0;
-    window.addEventListener('touchstart', (e) => {
-      // Don't intercept form inputs
-      if (e.target.closest('.contact-form') || e.target.closest('.social-link')) return;
+    let isSwiping = false;
+
+    document.addEventListener('touchstart', (e) => {
+      // Let form inputs handle their own touch
+      if (e.target.closest('input') || e.target.closest('textarea') || e.target.closest('button')) return;
       touchStartY = e.touches[0].clientY;
       touchStartProgress = targetProgress;
+      isSwiping = true;
     }, { passive: true });
 
-    window.addEventListener('touchmove', (e) => {
-      if (e.target.closest('.contact-form') || e.target.closest('.social-link')) return;
+    document.addEventListener('touchmove', (e) => {
+      if (!isSwiping) return;
+      if (e.target.closest('input') || e.target.closest('textarea')) return;
       e.preventDefault();
       const deltaY = touchStartY - e.touches[0].clientY;
-      const sensitivity = 1.8 / window.innerHeight;
+      const sensitivity = 2.2 / window.innerHeight;
       targetProgress = Math.max(0, Math.min(1, touchStartProgress + deltaY * sensitivity));
     }, { passive: false });
+
+    document.addEventListener('touchend', () => { isSwiping = false; }, { passive: true });
 
     // Keyboard
     window.addEventListener('keydown', (e) => {
@@ -710,6 +749,14 @@
 
       // Hide scroll hint after first movement
       if (progress > 0.01) scrollHint.classList.add('hidden');
+
+      // Show cosmic quote near the end
+      const quoteEl = document.getElementById('cosmic-quote');
+      if (progress > 0.88) {
+        quoteEl.classList.add('visible');
+      } else {
+        quoteEl.classList.remove('visible');
+      }
 
       renderer.render(scene, camera);
     }
