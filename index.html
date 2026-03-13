@@ -247,23 +247,31 @@
     /* ─── COSMIC QUOTE ─── */
     #cosmic-quote {
       position: fixed;
-      bottom: 24px;
+      bottom: 60px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 15;
-      max-width: 500px;
-      width: 90%;
+      max-width: 480px;
+      width: 88%;
       text-align: center;
       font-size: 0.72rem;
       font-style: italic;
-      line-height: 1.7;
+      line-height: 1.8;
       letter-spacing: 0.03em;
-      color: rgba(168,192,255,0.0);
+      color: rgba(168,192,255,0);
       pointer-events: none;
-      transition: color 1.5s ease;
+      opacity: 0;
+      animation: quoteReveal 6s ease 2.5s forwards;
     }
-    #cosmic-quote.visible {
-      color: rgba(168,192,255,0.25);
+    @keyframes quoteReveal {
+      0%   { opacity: 0; color: rgba(168,192,255,0); transform: translateX(-50%) translateY(10px); }
+      40%  { opacity: 1; color: rgba(168,192,255,0.3); transform: translateX(-50%) translateY(0); }
+      100% { opacity: 1; color: rgba(168,192,255,0.2); transform: translateX(-50%) translateY(0); }
+    }
+    #cosmic-quote.faded {
+      animation: none;
+      transition: opacity 1s ease;
+      opacity: 0;
     }
 
     /* ─── MOBILE ─── */
@@ -750,12 +758,9 @@
       // Hide scroll hint after first movement
       if (progress > 0.01) scrollHint.classList.add('hidden');
 
-      // Show cosmic quote near the end
-      const quoteEl = document.getElementById('cosmic-quote');
-      if (progress > 0.88) {
-        quoteEl.classList.add('visible');
-      } else {
-        quoteEl.classList.remove('visible');
+      // Fade out cosmic quote once user starts exploring
+      if (progress > 0.02) {
+        document.getElementById('cosmic-quote').classList.add('faded');
       }
 
       renderer.render(scene, camera);
