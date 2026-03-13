@@ -303,6 +303,12 @@
       min-height: 100vh;
       position: relative;
       text-align: center;
+      overflow: visible;
+    }
+
+    #constellation .section-inner {
+      max-width: 100%;
+      overflow: visible;
     }
 
     .constellation-header {
@@ -323,19 +329,24 @@
     }
 
     #three-canvas {
-      width: 100%;
-      height: 60vh;
-      min-height: 400px;
-      border-radius: 20px;
-      border: 1px solid rgba(168,192,255,0.08);
-      overflow: hidden;
+      width: 100vw;
+      height: 80vh;
+      min-height: 500px;
       position: relative;
+      margin-left: calc(-50vw + 50%);
       touch-action: none;
     }
 
     #three-canvas canvas {
       width: 100% !important;
       height: 100% !important;
+    }
+
+    @media (max-width: 768px) {
+      #three-canvas {
+        height: 70vh;
+        min-height: 400px;
+      }
     }
 
     /* Star labels floating over 3D */
