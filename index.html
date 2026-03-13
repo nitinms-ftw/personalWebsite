@@ -610,7 +610,7 @@
     // NAVIGATION (scroll + touch everywhere)
     // ═══════════════════════════════════════
     let prog = 0, tgt = 0;
-    const SPD = 0.035;
+    const SPD = 0.018;
     const touchLayer = document.getElementById('touch-layer');
 
     // Wheel — capture on window AND touch layer
@@ -630,7 +630,7 @@
       if(!swiping) return;
       e.preventDefault();
       const dy = ty0 - e.touches[0].clientY;
-      tgt = Math.max(0, Math.min(1, tp0 + dy * 2.5/innerHeight));
+      tgt = Math.max(0, Math.min(1, tp0 + dy * 1.25/innerHeight));
     }, {passive:false});
     touchLayer.addEventListener('touchend', ()=>{ swiping=false; }, {passive:true});
 
@@ -643,7 +643,7 @@
       if(!swiping || e.target.closest('input,textarea')) return;
       e.preventDefault();
       const dy = ty0 - e.touches[0].clientY;
-      tgt = Math.max(0, Math.min(1, tp0 + dy * 2.5/innerHeight));
+      tgt = Math.max(0, Math.min(1, tp0 + dy * 1.25/innerHeight));
     }, {passive:false});
     document.addEventListener('touchend', ()=>{ swiping=false; }, {passive:true});
 
@@ -687,7 +687,7 @@
       lastTime = now;
 
       // Smooth interpolation
-      prog += (tgt - prog) * Math.min(3*dt*4, 1);
+      prog += (tgt - prog) * Math.min(1.5*dt*4, 1);
       prog = Math.max(0, Math.min(1, prog));
 
       // Speed (for effects)
