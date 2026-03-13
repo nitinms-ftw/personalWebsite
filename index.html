@@ -19,6 +19,7 @@
       overflow:hidden; background:#030108;
       font-family:'Inter',sans-serif; color:#c8d5f0;
       -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing: grayscale;
       scrollbar-width:none;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
@@ -31,7 +32,7 @@
       background:#030108;
       display:flex; flex-direction:column;
       align-items:center; justify-content:center;
-      transition: opacity 1s ease;
+      transition: opacity 1.8s cubic-bezier(0.16,1,0.3,1);
     }
     #loader.done { opacity:0; pointer-events:none; }
     .loader-text {
@@ -49,10 +50,10 @@
     .loader-fill {
       height:100%; width:0%;
       background:rgba(168,192,255,0.5);
-      transition: width 0.3s;
+      transition: width 0.3s cubic-bezier(0.16,1,0.3,1);
     }
 
-    /* ─── TOUCH LAYER (captures all scroll/swipe) ─── */
+    /* ─── TOUCH LAYER ─── */
     #touch-layer {
       position:fixed; inset:0; z-index:5;
       touch-action:none;
@@ -62,6 +63,7 @@
     canvas {
       display:block; position:fixed; top:0; left:0;
       width:100%; height:100dvh; height:100%; z-index:1;
+      image-rendering: high-quality;
     }
 
     /* ─── UI OVERLAY ─── */
@@ -75,8 +77,9 @@
     .wp {
       position:absolute; width:90%; max-width:680px;
       text-align:center; pointer-events:none;
-      opacity:0; transform:translateY(24px) scale(0.97);
-      transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1);
+      opacity:0; transform:translateY(32px) scale(0.96);
+      transition: opacity 1.2s cubic-bezier(0.16,1,0.3,1), transform 1.2s cubic-bezier(0.16,1,0.3,1);
+      will-change: opacity, transform;
     }
     .wp.active {
       opacity:1; transform:translateY(0) scale(1);
@@ -84,22 +87,34 @@
     .wp .label {
       font-size:0.65rem; letter-spacing:0.3em;
       text-transform:uppercase; margin-bottom:14px; opacity:0.5;
+      transition: opacity 0.8s ease 0.1s;
     }
+    .wp.active .label { opacity:0.7; }
     .wp h2 {
       font-family:'Space Grotesk',sans-serif;
       font-weight:300; line-height:1.15;
       margin-bottom:18px; letter-spacing:0.01em;
+      transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s;
     }
     .wp p {
       font-weight:300; line-height:1.75;
       max-width:500px; margin:0 auto; opacity:0.55;
+      transition: opacity 0.8s ease 0.25s;
     }
-    .wp .tags { margin-top:14px; }
+    .wp .tags {
+      margin-top:14px;
+      transition: opacity 0.8s ease 0.35s;
+    }
     .wp .tag {
       display:inline-block; margin:3px; padding:3px 12px;
       border-radius:20px; font-size:0.6rem; letter-spacing:0.06em;
       border:1px solid rgba(168,192,255,0.12);
       color:rgba(168,192,255,0.45);
+      transition: border-color 0.4s, color 0.4s;
+    }
+    .wp.active .tag {
+      border-color:rgba(168,192,255,0.2);
+      color:rgba(168,192,255,0.55);
     }
 
     /* Hero waypoint */
@@ -118,7 +133,8 @@
     .wp-3 .label { color:#ffa8f0; }
     .wp-4 .label { color:#c0a8ff; }
     .wp-5 .label { color:#a8e8ff; }
-    .wp-6 .label { color:#a8c0ff; }
+    .wp-6 .label { color:#ffcfa8; }
+    .wp-7 .label { color:#a8c0ff; }
 
     /* ─── COSMIC QUOTE OVERLAY ─── */
     #quote-overlay {
@@ -127,7 +143,7 @@
       align-items:center; justify-content:center;
       background:rgba(3,1,8,0.88);
       pointer-events:none;
-      transition: opacity 1.2s ease;
+      transition: opacity 1.8s cubic-bezier(0.16,1,0.3,1);
     }
     #quote-overlay.gone { opacity:0; pointer-events:none; }
     .quote-text {
@@ -170,12 +186,12 @@
       width:7px; height:7px; border-radius:50%;
       border:1px solid rgba(168,192,255,0.2);
       background:transparent; cursor:pointer;
-      transition:all 0.4s; position:relative;
+      transition:all 0.5s cubic-bezier(0.16,1,0.3,1); position:relative;
     }
     .dot.active {
       background:rgba(168,192,255,0.7);
       border-color:rgba(168,192,255,0.7);
-      box-shadow:0 0 10px rgba(168,192,255,0.3);
+      box-shadow:0 0 12px rgba(168,192,255,0.4);
     }
     .dot .tip {
       position:absolute; right:18px; top:50%; transform:translateY(-50%);
@@ -192,7 +208,7 @@
       border-radius:50%; width:36px; height:36px;
       display:flex; align-items:center; justify-content:center;
       cursor:pointer; color:rgba(168,192,255,0.4);
-      font-size:0.9rem; transition:all 0.3s;
+      font-size:0.9rem; transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
     }
     #sound-btn:hover { border-color:rgba(168,192,255,0.4); color:rgba(168,192,255,0.8); }
 
@@ -205,7 +221,7 @@
       display:flex; align-items:center; gap:6px;
       padding:7px 14px; border:1px solid rgba(168,192,255,0.1);
       border-radius:30px; color:rgba(168,192,255,0.45);
-      text-decoration:none; font-size:0.7rem; transition:all 0.3s;
+      text-decoration:none; font-size:0.7rem; transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
     }
     .social-link:hover { color:#fff; border-color:rgba(168,192,255,0.35); background:rgba(168,192,255,0.05); }
     .social-link svg { width:13px; height:13px; fill:currentColor; }
@@ -224,7 +240,7 @@
       border:1px solid rgba(168,192,255,0.08);
       border-radius:7px; color:#e0e6f0;
       font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:300;
-      outline:none; transition:border-color 0.3s;
+      outline:none; transition:border-color 0.4s cubic-bezier(0.16,1,0.3,1);
     }
     .fr input:focus, .fr textarea:focus { border-color:rgba(168,192,255,0.3); }
     .fr textarea { min-height:70px; resize:vertical; }
@@ -234,19 +250,102 @@
       background:rgba(168,192,255,0.06); border:1px solid rgba(168,192,255,0.15);
       border-radius:7px; color:rgba(168,192,255,0.7);
       font-family:'Inter',sans-serif; font-size:0.82rem;
-      cursor:pointer; transition:all 0.3s; letter-spacing:0.05em;
+      cursor:pointer; transition:all 0.4s cubic-bezier(0.16,1,0.3,1); letter-spacing:0.05em;
     }
     .send-btn:hover { background:rgba(168,192,255,0.12); border-color:rgba(168,192,255,0.35); color:#fff; }
     .form-status { text-align:center; margin-top:8px; font-size:0.75rem; min-height:18px; }
     .form-status.ok { color:#a8ffc0; }
     .form-status.err { color:#ff8888; }
 
-    /* ─── SPEED LINES (CSS overlay for warp effect) ─── */
+    /* ─── WARP OVERLAY ─── */
     #warp {
       position:fixed; inset:0; z-index:2;
       pointer-events:none; opacity:0;
       background:radial-gradient(ellipse at center, transparent 30%, rgba(168,192,255,0.03) 100%);
-      transition: opacity 0.3s;
+      transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    /* ─── VIGNETTE ─── */
+    #vignette {
+      position:fixed; inset:0; z-index:3;
+      pointer-events:none;
+      background:radial-gradient(ellipse at center, transparent 50%, rgba(3,1,8,0.6) 100%);
+    }
+
+    /* ─── PROJECT STARS ─── */
+    .projects-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:14px; margin-top:22px; pointer-events:auto;
+      max-width:560px; margin-left:auto; margin-right:auto;
+    }
+    .proj {
+      display:flex; align-items:flex-start; gap:12px;
+      padding:14px 16px;
+      border:1px solid rgba(168,192,255,0.08);
+      border-radius:12px;
+      background:rgba(168,192,255,0.02);
+      text-decoration:none; color:inherit;
+      transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+      position:relative; overflow:hidden;
+    }
+    .proj:hover {
+      border-color:rgba(168,192,255,0.2);
+      background:rgba(168,192,255,0.05);
+      transform:translateY(-2px);
+    }
+    .proj::before {
+      content:''; position:absolute;
+      top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg,transparent,var(--accent,rgba(168,192,255,0.3)),transparent);
+      opacity:0; transition:opacity 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .proj:hover::before { opacity:1; }
+    .proj-icon {
+      font-size:1.6rem; flex-shrink:0; margin-top:2px;
+    }
+    .proj-info { flex:1; min-width:0; }
+    .proj-info h4 {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:0.82rem; font-weight:500; color:#fff;
+      margin-bottom:4px; line-height:1.3;
+    }
+    .proj-info p {
+      font-size:0.68rem; line-height:1.5;
+      color:rgba(168,192,255,0.4); opacity:1;
+      margin:0;
+    }
+    .proj-badge {
+      display:inline-block; margin-top:6px;
+      font-size:0.55rem; letter-spacing:0.08em;
+      text-transform:uppercase; padding:2px 8px;
+      border-radius:10px;
+    }
+    .proj-badge.yt { background:rgba(255,0,0,0.12); color:rgba(255,100,100,0.7); }
+    .proj-badge.gh { background:rgba(168,192,255,0.08); color:rgba(168,192,255,0.5); }
+
+    @media (max-width:600px) {
+      .projects-grid { grid-template-columns:1fr; max-width:320px; }
+    }
+
+    /* ─── FINALE TAGLINE ─── */
+    .wp.wp-finale h2 {
+      font-size:clamp(1.1rem,3vw,1.6rem);
+      font-weight:300;
+      font-style:italic;
+      background:linear-gradient(135deg,rgba(168,192,255,0.6),rgba(255,214,168,0.5));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      line-height:1.8;
+      letter-spacing:0.03em;
+    }
+    .wp.wp-finale .finale-line {
+      width:40px; height:1px; margin:20px auto 0;
+      background:linear-gradient(90deg,transparent,rgba(168,192,255,0.3),transparent);
+    }
+    .wp.wp-finale .finale-sig {
+      margin-top:16px;
+      font-size:0.6rem; letter-spacing:0.25em;
+      text-transform:uppercase;
+      color:rgba(168,192,255,0.25);
     }
 
     /* ─── MOBILE ─── */
@@ -268,7 +367,7 @@
     <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
   </div>
 
-  <!-- TOUCH CAPTURE LAYER (sits above canvas, below UI text) -->
+  <!-- TOUCH CAPTURE LAYER -->
   <div id="touch-layer"></div>
 
   <!-- QUOTE OVERLAY -->
@@ -287,6 +386,9 @@
 
   <!-- UI OVERLAY -->
   <div id="ui"></div>
+
+  <!-- VIGNETTE -->
+  <div id="vignette"></div>
 
   <!-- WARP SPEED OVERLAY -->
   <div id="warp"></div>
@@ -324,9 +426,15 @@
       { label:'Beyond Work', title:'The Explorer',
         desc:'Currently reading "Four Agreements" by Don Miguel Ruiz and "Caraka Samhita." Passionate about cricket, badminton, history, culture, space tech, and deep conversations.',
         tags:['Books','Cricket','History','Space Tech','Ayurveda'], pos:[8,-8,-190], color:'#a8e8ff', dot:'Explorer' },
+      { label:'My Creations', title:'Things I\'ve Made',
+        desc:'From AI-generated stories to developer tools — here\'s what I\'ve shipped into the universe.',
+        tags:[], pos:[-6,4,-225], color:'#ffcfa8', dot:'Creations', projects:true },
       { label:'Let\'s Talk', title:'Connect With Me',
         desc:'I thrive on deep 1-on-1 conversations. Tech: AI Agents, Space Tech, Financial Systems. Human: Cricket, History, Podcasts. No sales. Just talk.',
-        tags:[], pos:[0,2,-230], color:'#a8c0ff', dot:'Connect', connect:true },
+        tags:[], pos:[0,2,-265], color:'#a8c0ff', dot:'Connect', connect:true },
+      { label:'', title:'',
+        desc:'',
+        tags:[], pos:[0,0,-300], color:'#a8c0ff', dot:'End', finale:true },
     ];
     const N = WP.length;
 
@@ -337,24 +445,66 @@
     const progEl = document.getElementById('progress');
 
     WP.forEach((w,i) => {
-      // Text
       const d = document.createElement('div');
       d.className = `wp wp-${i}`;
+      if (w.finale) d.classList.add('wp-finale');
       d.id = `wp-${i}`;
       let h = '';
-      if (w.label) h += `<div class="label">${w.label}</div>`;
-      h += `<h2>${w.title}</h2><p>${w.desc}</p>`;
-      if (w.tags.length) h += `<div class="tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
-      if (w.connect) h += connectHTML();
+      if (w.finale) {
+        h = finaleHTML();
+      } else {
+        if (w.label) h += `<div class="label">${w.label}</div>`;
+        h += `<h2>${w.title}</h2><p>${w.desc}</p>`;
+        if (w.tags.length) h += `<div class="tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+        if (w.projects) h += projectsHTML();
+        if (w.connect) h += connectHTML();
+      }
       d.innerHTML = h;
       ui.appendChild(d);
-      // Dot
       const dot = document.createElement('div');
       dot.className = 'dot';
       dot.innerHTML = `<span class="tip">${w.dot}</span>`;
-      dot.addEventListener('click', () => { tgt = i/(N-1); });
+      dot.addEventListener('click', () => { targetWP = i; tgt = wpT[i]; });
       progEl.appendChild(dot);
     });
+
+    function projectsHTML() {
+      return `
+      <div class="projects-grid">
+        <a href="https://youtu.be/PX_6s-CIsIg" target="_blank" rel="noopener" class="proj" style="--accent:#ff6666">
+          <div class="proj-icon">🐴</div>
+          <div class="proj-info">
+            <h4>Chal Chal Gurram</h4>
+            <p>AI-generated Telugu action rhyme for kids. 170K+ views. 3D animation with Google Veo.</p>
+            <span class="proj-badge yt">▶ YouTube · 170K views</span>
+          </div>
+        </a>
+        <a href="https://youtu.be/tRv-1iePJ8c" target="_blank" rel="noopener" class="proj" style="--accent:#ff6666">
+          <div class="proj-icon">🦁</div>
+          <div class="proj-info">
+            <h4>Simham Eluka Katha</h4>
+            <p>Lion & Mouse — classic Telugu moral story brought to life with AI 3D animation.</p>
+            <span class="proj-badge yt">▶ YouTube · 15K views</span>
+          </div>
+        </a>
+        <a href="https://github.com/nitinms-ftw/TerminalPulse" target="_blank" rel="noopener" class="proj" style="--accent:#a8ffc0">
+          <div class="proj-icon">⚡</div>
+          <div class="proj-info">
+            <h4>TerminalPulse</h4>
+            <p>Track your terminal time, AI tool usage, streaks & achievements. Gamified dev productivity.</p>
+            <span class="proj-badge gh">◆ GitHub · Electron + JS</span>
+          </div>
+        </a>
+        <a href="https://github.com/nitinms-ftw/RnaDrawing" target="_blank" rel="noopener" class="proj" style="--accent:#c0a8ff">
+          <div class="proj-icon">🧬</div>
+          <div class="proj-info">
+            <h4>RNA Drawing</h4>
+            <p>Visualization tool for RNA secondary structures. An early exploration in bioinformatics.</p>
+            <span class="proj-badge gh">◆ GitHub · Bioinformatics</span>
+          </div>
+        </a>
+      </div>`;
+    }
 
     function connectHTML() {
       return `
@@ -377,17 +527,36 @@
       </form>`;
     }
 
+    function finaleHTML() {
+      return `
+        <h2>The universe is endless, and so is mine.<br>Will keep building new horizons.</h2>
+        <div class="finale-line"></div>
+        <div class="finale-sig">— Nitin Ganneboina</div>
+      `;
+    }
+
     // ═══════════════════════════════════════
-    // THREE.JS
+    // THREE.JS — HIGH RESOLUTION SETUP
     // ═══════════════════════════════════════
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x030108, 0.0025);
-    const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 600);
-    const renderer = new THREE.WebGLRenderer({ antialias:false, powerPreference:'high-performance' });
+    scene.fog = new THREE.FogExp2(0x030108, 0.002);
+    const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 800);
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: 'high-performance',
+      alpha: false,
+      stencil: false
+    });
     renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2.5));
     renderer.setClearColor(0x030108);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.outputEncoding = THREE.sRGBEncoding;
     document.body.prepend(renderer.domElement);
+
+    // Post-processing is handled via additive blending on stars
+    // + CSS filter for subtle bloom glow on the canvas
 
     // ═══════════════════════════════════════
     // CAMERA PATH
@@ -396,14 +565,25 @@
     const entry = pts[0].clone().add(new THREE.Vector3(0,0,15));
     const exit = pts[N-1].clone().add(new THREE.Vector3(0,0,-15));
     const spline = new THREE.CatmullRomCurve3([entry,...pts,exit], false, 'catmullrom', 0.3);
-    const wpT = WP.map((_,i) => (i+1)/(pts.length+1)); // normalized progress per waypoint
+    const wpT = WP.map((_,i) => (i+1)/(pts.length+1));
 
     // ═══════════════════════════════════════
-    // STARS (two layers)
+    // MOUSE PARALLAX
+    // ═══════════════════════════════════════
+    let mouseX = 0, mouseY = 0;
+    let smoothMouseX = 0, smoothMouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / innerHeight - 0.5) * 2;
+    });
+
+    // ═══════════════════════════════════════
+    // STARS — HD with proper glow
     // ═══════════════════════════════════════
     function mkStars(count, spread, sRange, bright) {
       const g = new THREE.BufferGeometry();
       const p = new Float32Array(count*3), s = new Float32Array(count), sd = new Float32Array(count);
+      const colors = new Float32Array(count*3);
       for (let i=0; i<count; i++) {
         const t = Math.random();
         const pp = spline.getPointAt(t);
@@ -412,97 +592,133 @@
         p[i*3+2]=pp.z+(Math.random()-.5)*spread;
         s[i]=sRange[0]+Math.random()*(sRange[1]-sRange[0]);
         sd[i]=Math.random()*6.28;
+        // Subtle color variation
+        const temp = Math.random();
+        if (temp < 0.3) {
+          colors[i*3]=0.85; colors[i*3+1]=0.9; colors[i*3+2]=1.0; // blue-white
+        } else if (temp < 0.6) {
+          colors[i*3]=1.0; colors[i*3+1]=0.98; colors[i*3+2]=0.95; // warm white
+        } else if (temp < 0.85) {
+          colors[i*3]=0.7; colors[i*3+1]=0.8; colors[i*3+2]=1.0; // blue
+        } else {
+          colors[i*3]=1.0; colors[i*3+1]=0.85; colors[i*3+2]=0.7; // warm
+        }
       }
       g.setAttribute('position', new THREE.Float32BufferAttribute(p,3));
       g.setAttribute('size', new THREE.Float32BufferAttribute(s,1));
       g.setAttribute('seed', new THREE.Float32BufferAttribute(sd,1));
+      g.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
       const m = new THREE.ShaderMaterial({
         uniforms:{ uTime:{value:0}, uBright:{value:bright}, uSpeed:{value:0} },
         vertexShader:`
-          attribute float size; attribute float seed;
+          attribute float size;
+          attribute float seed;
+          attribute vec3 color;
           uniform float uTime, uSpeed;
           varying float vA;
+          varying vec3 vColor;
           void main(){
+            vColor = color;
             vec4 mv = modelViewMatrix * vec4(position,1.0);
-            // Stretch points into lines when moving fast
-            float stretch = 1.0 + uSpeed * 8.0;
-            gl_PointSize = size * stretch * (120.0 / -mv.z);
+            float stretch = 1.0 + uSpeed * 6.0;
+            gl_PointSize = size * stretch * (140.0 / -mv.z);
             gl_Position = projectionMatrix * mv;
-            vA = 0.3 + 0.7*abs(sin(uTime*0.4+seed));
+            vA = 0.4 + 0.6*abs(sin(uTime*0.3+seed));
           }`,
         fragmentShader:`
           uniform float uBright, uSpeed;
           varying float vA;
+          varying vec3 vColor;
           void main(){
             vec2 uv = gl_PointCoord - 0.5;
-            // When moving fast, elongate into streaks
-            float d = length(vec2(uv.x, uv.y * (1.0 + uSpeed*6.0))) * 2.0;
+            float d = length(vec2(uv.x, uv.y * (1.0 + uSpeed*4.0))) * 2.0;
             if(d>1.0) discard;
-            float a = (1.0-d*d)*vA*uBright;
-            // Brighter when fast
-            vec3 col = mix(vec3(0.75,0.82,1.0), vec3(0.9,0.95,1.0), uSpeed);
-            gl_FragColor = vec4(col, a + uSpeed*0.3);
+            // Soft Gaussian-like falloff
+            float a = exp(-d*d*3.0) * vA * uBright;
+            // Glow halo
+            float halo = exp(-d*d*1.0) * 0.15 * uBright;
+            gl_FragColor = vec4(vColor, a + halo + uSpeed*0.15);
           }`,
-        transparent:true, depthWrite:false,
+        transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
       });
       return { points:new THREE.Points(g,m), mat:m };
     }
 
-    const near = mkStars(800, 50, [0.3,2.0], 0.7);
-    const far = mkStars(1500, 180, [0.2,1.2], 0.35);
-    scene.add(near.points); scene.add(far.points);
+    const near = mkStars(1500, 55, [0.3,2.5], 0.8);
+    const far = mkStars(3000, 200, [0.2,1.4], 0.4);
+    const dust = mkStars(800, 120, [0.1,0.5], 0.15);
+    scene.add(near.points); scene.add(far.points); scene.add(dust.points);
 
     // ═══════════════════════════════════════
-    // WAYPOINT ORBS
+    // WAYPOINT ORBS — HD glow
     // ═══════════════════════════════════════
-    function mkGlow(color) {
-      const c=document.createElement('canvas'); c.width=64; c.height=64;
+    function mkGlow(color, size) {
+      const c=document.createElement('canvas');
+      c.width=size||128; c.height=size||128;
       const x=c.getContext('2d');
-      const g=x.createRadialGradient(32,32,0,32,32,32);
-      g.addColorStop(0,color); g.addColorStop(0.3,color+'aa');
-      g.addColorStop(0.6,color+'33'); g.addColorStop(1,'transparent');
-      x.fillStyle=g; x.fillRect(0,0,64,64);
-      return new THREE.CanvasTexture(c);
+      const half = c.width/2;
+      const g=x.createRadialGradient(half,half,0,half,half,half);
+      g.addColorStop(0,color); g.addColorStop(0.15,color+'dd');
+      g.addColorStop(0.3,color+'88'); g.addColorStop(0.5,color+'33');
+      g.addColorStop(0.7,color+'11'); g.addColorStop(1,'transparent');
+      x.fillStyle=g; x.fillRect(0,0,c.width,c.height);
+      const tex = new THREE.CanvasTexture(c);
+      tex.needsUpdate = true;
+      return tex;
     }
 
     const orbs = [];
     WP.forEach((w,i) => {
-      const sz = i===0 ? 0.55 : 0.3;
+      const sz = i===0 ? 0.45 : 0.25;
       const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(sz,48,48),
+        new THREE.SphereGeometry(sz,64,64),
         new THREE.MeshBasicMaterial({ color:new THREE.Color(w.color) })
       );
       mesh.position.set(...w.pos); scene.add(mesh);
-      const gs = i===0 ? 4 : 2.2;
+      // Inner glow
+      const gs = i===0 ? 5 : 3;
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({
-        map:mkGlow(w.color), transparent:true, opacity:0.7,
+        map:mkGlow(w.color, 128), transparent:true, opacity:0.65,
         depthWrite:false, blending:THREE.AdditiveBlending
       }));
       sp.scale.set(gs,gs,1); sp.position.set(...w.pos); scene.add(sp);
-      orbs.push({mesh,sp,gs});
+      // Outer halo
+      const gs2 = gs * 2.5;
+      const sp2 = new THREE.Sprite(new THREE.SpriteMaterial({
+        map:mkGlow(w.color, 256), transparent:true, opacity:0.12,
+        depthWrite:false, blending:THREE.AdditiveBlending
+      }));
+      sp2.scale.set(gs2,gs2,1); sp2.position.set(...w.pos); scene.add(sp2);
+      orbs.push({mesh,sp,sp2,gs,gs2});
     });
 
     // Path line
-    const lp=[]; for(let i=0;i<=200;i++){const p=spline.getPointAt(i/200);lp.push(p.x,p.y,p.z);}
+    const lp=[]; for(let i=0;i<=400;i++){const p=spline.getPointAt(i/400);lp.push(p.x,p.y,p.z);}
     const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));
-    scene.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color:0x334477,transparent:true,opacity:0.1})));
+    scene.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color:0x334477,transparent:true,opacity:0.06})));
 
-    // Nebulae
+    // Nebulae — softer, larger
     WP.forEach((w,i) => {
       if(i===0||i===N-1) return;
-      const nm=new THREE.SpriteMaterial({
-        map:mkGlow(w.color), transparent:true, opacity:0.04,
-        depthWrite:false, blending:THREE.AdditiveBlending
-      });
-      const ns=new THREE.Sprite(nm); ns.scale.set(28,28,1);
-      ns.position.set(w.pos[0]+(Math.random()-.5)*4, w.pos[1]+(Math.random()-.5)*4, w.pos[2]-5);
-      scene.add(ns);
+      for(let j=0;j<2;j++){
+        const nm=new THREE.SpriteMaterial({
+          map:mkGlow(w.color, 256), transparent:true, opacity:0.025,
+          depthWrite:false, blending:THREE.AdditiveBlending
+        });
+        const ns=new THREE.Sprite(nm); ns.scale.set(40+Math.random()*15,40+Math.random()*15,1);
+        ns.position.set(
+          w.pos[0]+(Math.random()-.5)*8,
+          w.pos[1]+(Math.random()-.5)*8,
+          w.pos[2]-5+Math.random()*10
+        );
+        scene.add(ns);
+      }
     });
 
     // ═══════════════════════════════════════
-    // PARTICLE TRAIL (follows camera)
+    // PARTICLE TRAIL
     // ═══════════════════════════════════════
-    const TRAIL_N = 80;
+    const TRAIL_N = 120;
     const trailGeo = new THREE.BufferGeometry();
     const trailPos = new Float32Array(TRAIL_N*3);
     const trailAlpha = new Float32Array(TRAIL_N);
@@ -518,7 +734,7 @@
         void main(){
           vA = alpha * uSpeed;
           vec4 mv = modelViewMatrix * vec4(position,1.0);
-          gl_PointSize = (3.0 + uSpeed*5.0) * (80.0/-mv.z);
+          gl_PointSize = (2.5 + uSpeed*4.0) * (100.0/-mv.z);
           gl_Position = projectionMatrix * mv;
         }`,
       fragmentShader:`
@@ -526,77 +742,248 @@
         void main(){
           float d=length(gl_PointCoord-0.5)*2.0;
           if(d>1.0) discard;
-          gl_FragColor = vec4(0.6,0.7,1.0,(1.0-d)*vA*0.4);
+          float a = exp(-d*d*2.5) * vA * 0.35;
+          gl_FragColor = vec4(0.65,0.75,1.0, a);
         }`,
-      transparent:true, depthWrite:false,
+      transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
     });
     const trailPoints = new THREE.Points(trailGeo, trailMat);
     scene.add(trailPoints);
-
-    // Trail history buffer
     const trailHistory = [];
     for(let i=0;i<TRAIL_N;i++) trailHistory.push(new THREE.Vector3());
 
     // ═══════════════════════════════════════
-    // AUDIO (Web Audio API — no external files)
+    // AUDIO — SWEET & SMOOTH
     // ═══════════════════════════════════════
-    let audioCtx, ambientGain, whooshGain, ambientOsc, soundOn=false;
+    let audioCtx, masterGain, soundOn = false;
+    let ambientGainNode, padGainNode, whooshGainNode, chimeGainNode;
+    let padOscs = [], ambientOsc, lastChimeWP = -1;
+
+    // Musical notes (Hz) for sweet chimes
+    const CHIME_NOTES = [
+      392.00,  // G4
+      523.25,  // C5
+      659.25,  // E5
+      783.99,  // G5
+      1046.50, // C6
+      880.00,  // A5
+      587.33,  // D5
+      698.46,  // F5
+    ];
 
     function initAudio() {
       if(audioCtx) { audioCtx.resume(); return; }
       audioCtx = new (window.AudioContext||window.webkitAudioContext)();
       audioCtx.resume();
 
-      // Ambient drone
-      ambientGain = audioCtx.createGain();
-      ambientGain.gain.value = 0;
-      ambientGain.connect(audioCtx.destination);
+      // Master gain (overall volume control)
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.6;
+      masterGain.connect(audioCtx.destination);
 
-      ambientOsc = audioCtx.createOscillator();
-      ambientOsc.type = 'sine';
-      ambientOsc.frequency.value = 60;
+      // ── Warm Ambient Pad ──
+      // Multiple detuned sine waves for a lush, warm pad
+      padGainNode = audioCtx.createGain();
+      padGainNode.gain.value = 0;
+
+      // Reverb-like effect using feedback delays
+      const reverbDelay1 = audioCtx.createDelay(1.0);
+      reverbDelay1.delayTime.value = 0.12;
+      const reverbGain1 = audioCtx.createGain();
+      reverbGain1.gain.value = 0.25;
+      const reverbDelay2 = audioCtx.createDelay(1.0);
+      reverbDelay2.delayTime.value = 0.23;
+      const reverbGain2 = audioCtx.createGain();
+      reverbGain2.gain.value = 0.18;
+
+      // Low-pass filter for warmth
+      const padFilter = audioCtx.createBiquadFilter();
+      padFilter.type = 'lowpass';
+      padFilter.frequency.value = 600;
+      padFilter.Q.value = 0.5;
+
+      padGainNode.connect(padFilter);
+      padFilter.connect(masterGain);
+      padFilter.connect(reverbDelay1);
+      reverbDelay1.connect(reverbGain1);
+      reverbGain1.connect(masterGain);
+      reverbGain1.connect(reverbDelay2);
+      reverbDelay2.connect(reverbGain2);
+      reverbGain2.connect(masterGain);
+
+      // Pad oscillators — consonant intervals
+      const padFreqs = [
+        { freq: 65.41, type: 'sine' },    // C2 — deep fundamental
+        { freq: 98.00, type: 'sine' },    // G2 — perfect 5th
+        { freq: 130.81, type: 'sine' },   // C3 — octave
+        { freq: 164.81, type: 'sine' },   // E3 — major 3rd
+        { freq: 196.00, type: 'triangle' }, // G3 — soft shimmer
+      ];
+
+      padFreqs.forEach(({ freq, type }) => {
+        const osc = audioCtx.createOscillator();
+        osc.type = type;
+        osc.frequency.value = freq;
+        const oscGain = audioCtx.createGain();
+        oscGain.gain.value = freq < 100 ? 0.15 : 0.06;
+        osc.connect(oscGain);
+        oscGain.connect(padGainNode);
+        osc.start();
+        padOscs.push({ osc, gain: oscGain, baseFreq: freq });
+      });
+
+      // Slow LFO for gentle movement
       const lfo = audioCtx.createOscillator();
-      lfo.frequency.value = 0.1;
+      lfo.frequency.value = 0.06; // Very slow
       const lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = 8;
+      lfoGain.gain.value = 2;
       lfo.connect(lfoGain);
-      lfoGain.connect(ambientOsc.frequency);
+      lfoGain.connect(padOscs[0].osc.frequency);
       lfo.start();
 
-      // Add harmonics
-      const osc2 = audioCtx.createOscillator();
-      osc2.type = 'sine'; osc2.frequency.value = 90;
-      const g2 = audioCtx.createGain(); g2.gain.value = 0.3;
-      osc2.connect(g2); g2.connect(ambientGain);
-      osc2.start();
+      // Second LFO for filter cutoff modulation
+      const lfo2 = audioCtx.createOscillator();
+      lfo2.frequency.value = 0.08;
+      const lfoGain2 = audioCtx.createGain();
+      lfoGain2.gain.value = 100;
+      lfo2.connect(lfoGain2);
+      lfoGain2.connect(padFilter.frequency);
+      lfo2.start();
 
-      ambientOsc.connect(ambientGain);
-      ambientOsc.start();
+      // ── Smooth Whoosh (filtered, warm) ──
+      whooshGainNode = audioCtx.createGain();
+      whooshGainNode.gain.value = 0;
 
-      // Whoosh (noise)
-      whooshGain = audioCtx.createGain();
-      whooshGain.gain.value = 0;
       const bufSize = audioCtx.sampleRate * 2;
       const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
       const data = buf.getChannelData(0);
-      for(let i=0;i<bufSize;i++) data[i]=(Math.random()*2-1)*0.5;
+      // Pink-ish noise (smoother than white)
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for(let i=0;i<bufSize;i++){
+        const white = Math.random()*2-1;
+        b0 = 0.99886*b0 + white*0.0555179;
+        b1 = 0.99332*b1 + white*0.0750759;
+        b2 = 0.96900*b2 + white*0.1538520;
+        b3 = 0.86650*b3 + white*0.3104856;
+        b4 = 0.55000*b4 + white*0.5329522;
+        b5 = -0.7616*b5 - white*0.0168980;
+        data[i] = (b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.07;
+        b6 = white*0.115926;
+      }
       const noise = audioCtx.createBufferSource();
       noise.buffer = buf; noise.loop = true;
-      const bpf = audioCtx.createBiquadFilter();
-      bpf.type = 'bandpass'; bpf.frequency.value = 800; bpf.Q.value = 0.5;
-      noise.connect(bpf); bpf.connect(whooshGain);
-      whooshGain.connect(audioCtx.destination);
+
+      // Heavy filtering for smooth sound
+      const whooshLP = audioCtx.createBiquadFilter();
+      whooshLP.type = 'lowpass';
+      whooshLP.frequency.value = 400;
+      whooshLP.Q.value = 0.3;
+
+      const whooshHP = audioCtx.createBiquadFilter();
+      whooshHP.type = 'highpass';
+      whooshHP.frequency.value = 80;
+      whooshHP.Q.value = 0.3;
+
+      noise.connect(whooshLP);
+      whooshLP.connect(whooshHP);
+      whooshHP.connect(whooshGainNode);
+      whooshGainNode.connect(masterGain);
       noise.start();
+
+      // ── Chime system (for waypoint transitions) ──
+      chimeGainNode = audioCtx.createGain();
+      chimeGainNode.gain.value = 0.25;
+
+      const chimeReverb1 = audioCtx.createDelay(1.0);
+      chimeReverb1.delayTime.value = 0.18;
+      const chimeReverbGain = audioCtx.createGain();
+      chimeReverbGain.gain.value = 0.3;
+      const chimeReverb2 = audioCtx.createDelay(1.0);
+      chimeReverb2.delayTime.value = 0.35;
+      const chimeReverbGain2 = audioCtx.createGain();
+      chimeReverbGain2.gain.value = 0.15;
+
+      chimeGainNode.connect(masterGain);
+      chimeGainNode.connect(chimeReverb1);
+      chimeReverb1.connect(chimeReverbGain);
+      chimeReverbGain.connect(masterGain);
+      chimeReverbGain.connect(chimeReverb2);
+      chimeReverb2.connect(chimeReverbGain2);
+      chimeReverbGain2.connect(masterGain);
+    }
+
+    function playChime(wpIndex) {
+      if(!audioCtx || !soundOn || wpIndex === lastChimeWP) return;
+      lastChimeWP = wpIndex;
+
+      const freq = CHIME_NOTES[wpIndex % CHIME_NOTES.length];
+      const now = audioCtx.currentTime;
+
+      // Main tone — soft sine bell
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      // Harmonic — octave above, very quiet
+      const osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.value = freq * 2;
+
+      // Fifth above for richness
+      const osc3 = audioCtx.createOscillator();
+      osc3.type = 'sine';
+      osc3.frequency.value = freq * 1.5;
+
+      const env = audioCtx.createGain();
+      env.gain.setValueAtTime(0, now);
+      env.gain.linearRampToValueAtTime(0.12, now + 0.05); // soft attack
+      env.gain.exponentialRampToValueAtTime(0.001, now + 3.0); // long, sweet decay
+
+      const env2 = audioCtx.createGain();
+      env2.gain.setValueAtTime(0, now);
+      env2.gain.linearRampToValueAtTime(0.04, now + 0.03);
+      env2.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+
+      const env3 = audioCtx.createGain();
+      env3.gain.setValueAtTime(0, now);
+      env3.gain.linearRampToValueAtTime(0.02, now + 0.04);
+      env3.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+
+      osc.connect(env);
+      osc2.connect(env2);
+      osc3.connect(env3);
+      env.connect(chimeGainNode);
+      env2.connect(chimeGainNode);
+      env3.connect(chimeGainNode);
+
+      osc.start(now);
+      osc2.start(now);
+      osc3.start(now);
+      osc.stop(now + 3.5);
+      osc2.stop(now + 2.5);
+      osc3.stop(now + 2.0);
     }
 
     function updateAudio(spd) {
       if(!audioCtx || !soundOn) return;
-      // Ambient drone: always present, swells with speed
-      ambientGain.gain.linearRampToValueAtTime(0.06 + spd*0.06, audioCtx.currentTime+0.1);
-      // Whoosh: louder, more dramatic
-      whooshGain.gain.linearRampToValueAtTime(spd*0.35, audioCtx.currentTime+0.05);
-      // Drone pitch rises with speed
-      ambientOsc.frequency.linearRampToValueAtTime(60+spd*60, audioCtx.currentTime+0.1);
+      const t = audioCtx.currentTime;
+
+      // Pad: gentle swell with speed, always softly present
+      padGainNode.gain.linearRampToValueAtTime(
+        0.5 + spd * 0.3, t + 0.15
+      );
+
+      // Whoosh: very gentle, only audible at higher speeds
+      whooshGainNode.gain.linearRampToValueAtTime(
+        spd * spd * 0.08, t + 0.1  // Quadratic so it's barely there at low speeds
+      );
+
+      // Pad pitch rises very subtly with speed
+      padOscs.forEach(({ osc, baseFreq }) => {
+        osc.frequency.linearRampToValueAtTime(
+          baseFreq + spd * baseFreq * 0.03, t + 0.2
+        );
+      });
     }
 
     const soundBtn = document.getElementById('sound-btn');
@@ -604,61 +991,130 @@
       initAudio();
       soundOn = !soundOn;
       soundBtn.textContent = soundOn ? '🔊' : '🔇';
-      if(soundOn && ambientGain) {
-        // Start ambient drone immediately
-        ambientGain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime+0.5);
-      } else if(!soundOn && ambientGain) {
-        ambientGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
-        whooshGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
+      if(soundOn && padGainNode) {
+        padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime+1.0);
+      } else if(!soundOn && padGainNode) {
+        padGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.5);
+        whooshGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime+0.3);
       }
     });
 
     // ═══════════════════════════════════════
-    // NAVIGATION (scroll + touch everywhere)
+    // NAVIGATION — SNAP-TO-WAYPOINT SCROLLING
     // ═══════════════════════════════════════
     let prog = 0, tgt = 0;
-    const SPD = 0.018;
+    let velocity = 0;
+    const MOMENTUM_DECAY = 0.88;
     const touchLayer = document.getElementById('touch-layer');
 
-    // Wheel — capture on window AND touch layer
+    // Scroll accumulator — user must scroll *enough* to break free of a waypoint
+    let scrollAccum = 0;
+    const SCROLL_THRESHOLD = 6;    // scroll ticks needed to move to next waypoint
+    let scrollDir = 0;             // current scroll direction
+    let scrollTimeout = null;      // reset accumulator after pause
+
+    // Waypoint snap behavior: target always snaps to nearest waypoint
+    let targetWP = 0;
+
     function onWheel(e) {
       e.preventDefault();
-      tgt = Math.max(0, Math.min(1, tgt + Math.sign(e.deltaY)*SPD));
+      const dir = Math.sign(e.deltaY);
+
+      // If direction changed, reset accumulator
+      if (dir !== scrollDir) {
+        scrollAccum = 0;
+        scrollDir = dir;
+      }
+
+      scrollAccum += 1;
+
+      // Reset accumulator after a pause in scrolling
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => { scrollAccum = 0; }, 300);
+
+      // Only advance to next waypoint after enough scroll ticks
+      if (scrollAccum >= SCROLL_THRESHOLD) {
+        scrollAccum = 0;
+        const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
+        if (nextWP !== targetWP) {
+          targetWP = nextWP;
+          tgt = wpT[targetWP];
+        }
+      }
     }
     window.addEventListener('wheel', onWheel, {passive:false});
     touchLayer.addEventListener('wheel', onWheel, {passive:false});
 
-    // Touch — capture on touch layer (covers entire screen)
-    let ty0=0, tp0=0, swiping=false;
+    // Touch — also snap-based
+    let ty0=0, tp0=0, swiping=false, lastTouchY=0, touchAccum=0;
+    const TOUCH_THRESHOLD = 60; // pixels needed to swipe to next section
+
     touchLayer.addEventListener('touchstart', (e) => {
       ty0=e.touches[0].clientY; tp0=tgt; swiping=true;
+      lastTouchY = ty0; touchAccum = 0;
     }, {passive:true});
     touchLayer.addEventListener('touchmove', (e) => {
       if(!swiping) return;
       e.preventDefault();
-      const dy = ty0 - e.touches[0].clientY;
-      tgt = Math.max(0, Math.min(1, tp0 + dy * 1.25/innerHeight));
-    }, {passive:false});
-    touchLayer.addEventListener('touchend', ()=>{ swiping=false; }, {passive:true});
+      const y = e.touches[0].clientY;
+      const totalDy = ty0 - y;
 
-    // Also capture on document for any missed areas
+      // Check if we've swiped enough to move to next waypoint
+      if (Math.abs(totalDy) > TOUCH_THRESHOLD && touchAccum === 0) {
+        const dir = Math.sign(totalDy);
+        const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
+        if (nextWP !== targetWP) {
+          targetWP = nextWP;
+          tgt = wpT[targetWP];
+          touchAccum = 1; // prevent multiple triggers per swipe
+        }
+      }
+      lastTouchY = y;
+    }, {passive:false});
+    touchLayer.addEventListener('touchend', ()=>{
+      swiping=false; touchAccum=0;
+    }, {passive:true});
+
     document.addEventListener('touchstart', (e) => {
       if(e.target.closest('input,textarea,button,a')) return;
       ty0=e.touches[0].clientY; tp0=tgt; swiping=true;
+      lastTouchY = ty0; touchAccum=0;
     }, {passive:true});
     document.addEventListener('touchmove', (e) => {
       if(!swiping || e.target.closest('input,textarea')) return;
       e.preventDefault();
-      const dy = ty0 - e.touches[0].clientY;
-      tgt = Math.max(0, Math.min(1, tp0 + dy * 1.25/innerHeight));
-    }, {passive:false});
-    document.addEventListener('touchend', ()=>{ swiping=false; }, {passive:true});
+      const y = e.touches[0].clientY;
+      const totalDy = ty0 - y;
 
-    // Keyboard
+      if (Math.abs(totalDy) > TOUCH_THRESHOLD && touchAccum === 0) {
+        const dir = Math.sign(totalDy);
+        const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
+        if (nextWP !== targetWP) {
+          targetWP = nextWP;
+          tgt = wpT[targetWP];
+          touchAccum = 1;
+        }
+      }
+      lastTouchY = y;
+    }, {passive:false});
+    document.addEventListener('touchend', ()=>{
+      swiping=false; touchAccum=0;
+    }, {passive:true});
+
+    // Keyboard — already snaps perfectly
     window.addEventListener('keydown', (e) => {
-      if(e.key==='ArrowDown'||e.key===' ') { e.preventDefault(); tgt=Math.min(1,wpT[Math.min(curWP+1,N-1)]); }
-      else if(e.key==='ArrowUp') { e.preventDefault(); tgt=Math.max(0,wpT[Math.max(curWP-1,0)]); }
+      if(e.key==='ArrowDown'||e.key===' ') {
+        e.preventDefault();
+        targetWP = Math.min(N-1, targetWP+1);
+        tgt = wpT[targetWP];
+      } else if(e.key==='ArrowUp') {
+        e.preventDefault();
+        targetWP = Math.max(0, targetWP-1);
+        tgt = wpT[targetWP];
+      }
     });
+
+    // Dot clicks handled in UI build section above
 
     // ═══════════════════════════════════════
     // LOADING
@@ -669,58 +1125,94 @@
     function fakeLoad() {
       let p=0;
       const iv = setInterval(()=>{
-        p += 8 + Math.random()*12;
-        if(p>=100) { p=100; clearInterval(iv); setTimeout(()=>{ loader.classList.add('done'); loaded=true; },400); }
+        p += 6 + Math.random()*10;
+        if(p>=100) { p=100; clearInterval(iv); setTimeout(()=>{ loader.classList.add('done'); loaded=true; },500); }
         loaderFill.style.width = p+'%';
-      }, 120);
+      }, 100);
     }
     fakeLoad();
 
     // ═══════════════════════════════════════
-    // ANIMATION LOOP
+    // ANIMATION LOOP — 60fps buttery smooth
     // ═══════════════════════════════════════
     const dots = document.querySelectorAll('.dot');
     const wpEls = WP.map((_,i)=>document.getElementById(`wp-${i}`));
     const warpEl = document.getElementById('warp');
     const quoteEl = document.getElementById('quote-overlay');
     let curWP=0, lastProg=0, lastTime=performance.now();
+    let smoothSpeed = 0;
+
+    // Camera smoothing targets
+    const camPosSmooth = new THREE.Vector3();
+    const camLookSmooth = new THREE.Vector3();
+    let camInited = false;
 
     function tick() {
       requestAnimationFrame(tick);
       if(!loaded) return;
 
       const now = performance.now();
-      const dt = Math.min((now-lastTime)/1000, 0.05);
+      const dt = Math.min((now-lastTime)/1000, 0.033); // Cap at ~30fps minimum
       lastTime = now;
 
-      // Smooth interpolation
-      prog += (tgt - prog) * Math.min(1.5*dt*4, 1);
+      // Smooth glide to target waypoint (slow, cinematic ease)
+      // Uses a softer lerp so the camera floats gracefully between stops
+      const lerpFactor = 1 - Math.pow(0.015, dt); // Very smooth ~98.5% per second
+      prog += (tgt - prog) * lerpFactor;
       prog = Math.max(0, Math.min(1, prog));
 
-      // Speed (for effects)
-      const velocity = Math.abs(prog - lastProg) / dt;
-      const spd = Math.min(velocity * 8, 1); // normalized 0-1
+      // Speed calculation (smoothed)
+      const rawSpeed = Math.abs(prog - lastProg) / Math.max(dt, 0.001);
+      smoothSpeed += (Math.min(rawSpeed * 6, 1) - smoothSpeed) * lerpFactor;
       lastProg = prog;
 
-      // Camera
+      // Mouse parallax (smooth)
+      smoothMouseX += (mouseX - smoothMouseX) * lerpFactor * 0.5;
+      smoothMouseY += (mouseY - smoothMouseY) * lerpFactor * 0.5;
+
+      // Camera — ultra-smooth with parallax
       const ct = Math.max(0.001, Math.min(0.999, prog));
-      camera.position.copy(spline.getPointAt(ct));
-      camera.lookAt(spline.getPointAt(Math.min(ct+0.015, 0.999)));
+      const targetPos = spline.getPointAt(ct);
+      const lookTarget = spline.getPointAt(Math.min(ct+0.012, 0.999));
+
+      // Add mouse parallax offset
+      targetPos.x += smoothMouseX * 0.8;
+      targetPos.y -= smoothMouseY * 0.5;
+
+      if (!camInited) {
+        camPosSmooth.copy(targetPos);
+        camLookSmooth.copy(lookTarget);
+        camInited = true;
+      }
+
+      // Extra smooth camera (double-smoothed)
+      const camLerp = 1 - Math.pow(0.02, dt);
+      camPosSmooth.lerp(targetPos, camLerp);
+      camLookSmooth.lerp(lookTarget, camLerp);
+
+      camera.position.copy(camPosSmooth);
+      camera.lookAt(camLookSmooth);
+
+      // Subtle roll
       const tan = spline.getTangentAt(ct);
-      camera.rotation.z = -tan.x * 0.08;
+      camera.rotation.z = -tan.x * 0.06 + smoothMouseX * 0.02;
 
       // Star effects
       const t = now*0.001;
       near.mat.uniforms.uTime.value = t;
-      near.mat.uniforms.uSpeed.value = spd;
+      near.mat.uniforms.uSpeed.value = smoothSpeed;
       far.mat.uniforms.uTime.value = t;
-      far.mat.uniforms.uSpeed.value = spd;
+      far.mat.uniforms.uSpeed.value = smoothSpeed;
+      dust.mat.uniforms.uTime.value = t;
+      dust.mat.uniforms.uSpeed.value = smoothSpeed * 0.5;
 
       // Warp overlay
-      warpEl.style.opacity = spd * 0.8;
+      warpEl.style.opacity = smoothSpeed * 0.6;
 
       // Particle trail
-      trailHistory.unshift(camera.position.clone().add(new THREE.Vector3((Math.random()-.5)*0.5,(Math.random()-.5)*0.5,0)));
+      trailHistory.unshift(camera.position.clone().add(new THREE.Vector3(
+        (Math.random()-.5)*0.3, (Math.random()-.5)*0.3, 0
+      )));
       trailHistory.length = TRAIL_N;
       const tp = trailGeo.attributes.position.array;
       for(let i=0;i<TRAIL_N;i++){
@@ -728,31 +1220,43 @@
         if(h){tp[i*3]=h.x;tp[i*3+1]=h.y;tp[i*3+2]=h.z;}
       }
       trailGeo.attributes.position.needsUpdate=true;
-      trailMat.uniforms.uSpeed.value = spd;
+      trailMat.uniforms.uSpeed.value = smoothSpeed;
 
       // Pulse orbs
       orbs.forEach((o,i) => {
-        const pulse = 1+0.15*Math.sin(t*1.5+i*1.7);
+        const pulse = 1+0.12*Math.sin(t*1.2+i*1.7);
         o.sp.scale.setScalar(o.gs*pulse);
+        o.sp2.scale.setScalar(o.gs2*(1+0.08*Math.sin(t*0.8+i*2.1)));
         const d = camera.position.distanceTo(o.mesh.position);
-        o.sp.material.opacity = d<15?0.9:0.5;
+        const prox = Math.max(0, 1 - d/20);
+        o.sp.material.opacity = 0.4 + prox * 0.5;
+        o.sp2.material.opacity = 0.08 + prox * 0.12;
       });
 
       // Active waypoint
       let closest=0, cd=Infinity;
       wpT.forEach((w,i)=>{ const d=Math.abs(prog-w); if(d<cd){cd=d;closest=i;} });
+
+      // Trigger chime on waypoint change
+      if (closest !== curWP) {
+        playChime(closest);
+      }
       curWP = closest;
 
       wpEls.forEach((el,i) => {
-        el.classList.toggle('active', Math.abs(prog-wpT[i])<0.055);
+        el.classList.toggle('active', Math.abs(prog-wpT[i])<0.05);
       });
       dots.forEach((d,i) => d.classList.toggle('active', i===curWP));
 
-      // Quote overlay
-      if(prog>0.01) quoteEl.classList.add('gone');
+      // Quote overlay — show at start, re-show when scrolling back to first orb
+      if(prog>0.02) {
+        quoteEl.classList.add('gone');
+      } else {
+        quoteEl.classList.remove('gone');
+      }
 
       // Audio
-      updateAudio(spd);
+      updateAudio(smoothSpeed);
 
       renderer.render(scene, camera);
     }
@@ -760,9 +1264,11 @@
 
     // Resize
     function onResize(){
-      camera.aspect=innerWidth/innerHeight;
+      const w = innerWidth, h = innerHeight;
+      camera.aspect = w/h;
       camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth,innerHeight);
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2.5));
     }
     addEventListener('resize', onResize);
     addEventListener('orientationchange', ()=>setTimeout(onResize,200));
