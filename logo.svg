@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a8c0ff" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#c0a8ff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ffd6a8" stop-opacity="0.6"/>
+    </linearGradient>
+
+    <filter id="brightGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b2"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="b3"/>
+      <feMerge>
+        <feMergeNode in="b3"/>
+        <feMergeNode in="b2"/>
+        <feMergeNode in="b1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="lineGlow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="dotGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a0520"/>
+      <stop offset="60%" stop-color="#050215"/>
+      <stop offset="100%" stop-color="#030108"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="256" cy="256" r="250" fill="url(#bgGrad)"/>
+  <circle cx="256" cy="256" r="244" fill="none" stroke="#a8c0ff" stroke-opacity="0.06" stroke-width="0.6"/>
+
+  <!-- Scattered deep-field stars (behind everything) -->
+  <circle cx="95" cy="175" r="1.5" fill="#fff" opacity="0.25"/>
+  <circle cx="425" cy="145" r="1.2" fill="#fff" opacity="0.2"/>
+  <circle cx="385" cy="95" r="1.5" fill="#a8c0ff" opacity="0.22"/>
+  <circle cx="125" cy="425" r="1.2" fill="#ffd6a8" opacity="0.18"/>
+  <circle cx="405" cy="410" r="1.5" fill="#c0a8ff" opacity="0.2"/>
+  <circle cx="210" cy="95" r="1" fill="#fff" opacity="0.18"/>
+  <circle cx="305" cy="430" r="1.2" fill="#a8c0ff" opacity="0.18"/>
+  <circle cx="75" cy="310" r="1.5" fill="#fff" opacity="0.15"/>
+  <circle cx="445" cy="275" r="1" fill="#ffd6a8" opacity="0.18"/>
+  <circle cx="115" cy="125" r="1.2" fill="#c0a8ff" opacity="0.18"/>
+  <circle cx="455" cy="195" r="1.5" fill="#a8e8ff" opacity="0.18"/>
+  <circle cx="195" cy="435" r="1" fill="#fff" opacity="0.13"/>
+  <circle cx="355" cy="78" r="1" fill="#fff" opacity="0.2"/>
+  <circle cx="85" cy="245" r="1" fill="#a8c0ff" opacity="0.15"/>
+  <circle cx="465" cy="355" r="1.2" fill="#ffa8f0" opacity="0.12"/>
+  <circle cx="256" cy="80" r="1" fill="#fff" opacity="0.15"/>
+  <circle cx="430" cy="440" r="1" fill="#a8c0ff" opacity="0.12"/>
+  <circle cx="70" cy="390" r="1.2" fill="#fff" opacity="0.13"/>
+  <circle cx="190" cy="155" r="0.8" fill="#ffd6a8" opacity="0.15"/>
+  <circle cx="320" cy="110" r="0.8" fill="#a8c0ff" opacity="0.15"/>
+
+  <!-- Orbital rings (behind the N) -->
+  <ellipse cx="256" cy="256" rx="195" ry="75" fill="none" stroke="url(#ringGrad)" stroke-width="1" transform="rotate(-20, 256, 256)"/>
+  <ellipse cx="256" cy="256" rx="165" ry="50" fill="none" stroke="#a8c0ff" stroke-width="0.6" stroke-opacity="0.12" transform="rotate(40, 256, 256)"/>
+
+  <!-- ═══ THE "N" CONSTELLATION ═══ -->
+  <!-- Glow layer (wider, dimmer) -->
+  <line x1="160" y1="375" x2="160" y2="137" stroke="#a8c0ff" stroke-width="8" stroke-opacity="0.15" stroke-linecap="round"/>
+  <line x1="160" y1="137" x2="352" y2="375" stroke="#c0a8ff" stroke-width="8" stroke-opacity="0.12" stroke-linecap="round"/>
+  <line x1="352" y1="375" x2="352" y2="137" stroke="#ffd6a8" stroke-width="8" stroke-opacity="0.15" stroke-linecap="round"/>
+
+  <!-- Core lines (bright, crisp) -->
+  <line x1="160" y1="375" x2="160" y2="137" stroke="#a8c0ff" stroke-width="2.8" stroke-opacity="0.9" stroke-linecap="round" filter="url(#lineGlow)"/>
+  <line x1="160" y1="137" x2="352" y2="375" stroke="#d0c0ff" stroke-width="2.5" stroke-opacity="0.8" stroke-linecap="round" filter="url(#lineGlow)"/>
+  <line x1="352" y1="375" x2="352" y2="137" stroke="#ffd6a8" stroke-width="2.8" stroke-opacity="0.9" stroke-linecap="round" filter="url(#lineGlow)"/>
+
+  <!-- Star nodes at 4 vertices -->
+  <!-- Bottom-left: blue star -->
+  <circle cx="160" cy="375" r="8" fill="#a8c0ff" opacity="0.8" filter="url(#dotGlow)"/>
+  <circle cx="160" cy="375" r="3.5" fill="#fff"/>
+
+  <!-- Top-left: BRIGHT MAIN STAR with cross flare -->
+  <g filter="url(#brightGlow)">
+    <circle cx="160" cy="137" r="11" fill="#fff"/>
+    <circle cx="160" cy="137" r="16" fill="#a8c0ff" opacity="0.15"/>
+    <line x1="128" y1="137" x2="192" y2="137" stroke="#fff" stroke-width="1.5" stroke-opacity="0.55" stroke-linecap="round"/>
+    <line x1="160" y1="105" x2="160" y2="169" stroke="#fff" stroke-width="1.5" stroke-opacity="0.55" stroke-linecap="round"/>
+    <line x1="140" y1="117" x2="180" y2="157" stroke="#a8c0ff" stroke-width="0.7" stroke-opacity="0.3" stroke-linecap="round"/>
+    <line x1="180" y1="117" x2="140" y2="157" stroke="#a8c0ff" stroke-width="0.7" stroke-opacity="0.3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Bottom-right: purple star -->
+  <circle cx="352" cy="375" r="8" fill="#c0a8ff" opacity="0.8" filter="url(#dotGlow)"/>
+  <circle cx="352" cy="375" r="3.5" fill="#fff" opacity="0.85"/>
+
+  <!-- Top-right: warm star with small flare -->
+  <g filter="url(#dotGlow)">
+    <circle cx="352" cy="137" r="9" fill="#ffd6a8" opacity="0.85"/>
+    <circle cx="352" cy="137" r="4" fill="#fff" opacity="0.9"/>
+    <line x1="336" y1="137" x2="368" y2="137" stroke="#fff" stroke-width="0.8" stroke-opacity="0.4" stroke-linecap="round"/>
+    <line x1="352" y1="121" x2="352" y2="153" stroke="#fff" stroke-width="0.8" stroke-opacity="0.4" stroke-linecap="round"/>
+  </g>
+
+  <!-- Mid-line accent stars -->
+  <circle cx="160" cy="256" r="3.5" fill="#a8e8ff" opacity="0.65" filter="url(#dotGlow)"/>
+  <circle cx="224" cy="200" r="2.5" fill="#d0c0ff" opacity="0.45" filter="url(#dotGlow)"/>
+  <circle cx="256" cy="256" r="3.5" fill="#ffa8f0" opacity="0.4" filter="url(#dotGlow)"/>
+  <circle cx="290" cy="312" r="2.5" fill="#a8ffc0" opacity="0.4" filter="url(#dotGlow)"/>
+  <circle cx="352" cy="256" r="3.5" fill="#ffcfa8" opacity="0.6" filter="url(#dotGlow)"/>
+</svg>

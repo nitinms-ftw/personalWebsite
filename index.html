@@ -10,6 +10,10 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#030108" />
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
@@ -309,14 +313,21 @@
 
     /* ─── TOP LEFT BRAND ─── */
     #brand {
-      position:fixed; top:24px; left:28px; z-index:20;
-      font-family:'Space Grotesk',sans-serif;
-      font-size:0.65rem; letter-spacing:0.25em;
-      text-transform:uppercase;
-      color:rgba(168,192,255,0.3);
+      position:fixed; top:18px; left:20px; z-index:20;
       pointer-events:none;
       opacity:0;
       animation: fadeInSlow 2s ease 1s forwards;
+      display:flex; align-items:center; gap:10px;
+    }
+    #brand svg {
+      width:34px; height:34px;
+      filter: drop-shadow(0 0 6px rgba(168,192,255,0.3));
+    }
+    #brand .brand-text {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:0.55rem; letter-spacing:0.3em;
+      text-transform:uppercase;
+      color:rgba(168,192,255,0.3);
     }
     @keyframes fadeInSlow { to { opacity:1; } }
 
@@ -529,7 +540,9 @@
       .social-row { flex-direction:column; align-items:center; }
       .contact-form { max-width:90%; }
       #sound-btn { width:34px; height:34px; font-size:0.75rem; top:16px; right:16px; }
-      #brand { left:16px; top:16px; font-size:0.55rem; }
+      #brand { left:12px; top:12px; }
+      #brand svg { width:28px; height:28px; }
+      #brand .brand-text { font-size:0.45rem; }
       #status-bar { left:16px; bottom:16px; }
       #scanlines { display:none; }
     }
@@ -586,7 +599,54 @@
   <div id="ui"></div>
 
   <!-- BRAND -->
-  <div id="brand">NG</div>
+  <div id="brand">
+    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#a8c0ff" stop-opacity="0.6"/>
+          <stop offset="50%" stop-color="#c0a8ff" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#ffd6a8" stop-opacity="0.6"/>
+        </linearGradient>
+        <filter id="bGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b1"/>
+          <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b2"/>
+          <feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="bLine" x="-15%" y="-15%" width="130%" height="130%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="bDot" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <radialGradient id="bBg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#0a0520"/><stop offset="60%" stop-color="#050215"/><stop offset="100%" stop-color="#030108"/>
+        </radialGradient>
+      </defs>
+      <circle cx="256" cy="256" r="250" fill="url(#bBg)"/>
+      <circle cx="256" cy="256" r="244" fill="none" stroke="#a8c0ff" stroke-opacity="0.06" stroke-width="0.6"/>
+      <ellipse cx="256" cy="256" rx="195" ry="75" fill="none" stroke="url(#bRingGrad)" stroke-width="1" transform="rotate(-20,256,256)"/>
+      <ellipse cx="256" cy="256" rx="165" ry="50" fill="none" stroke="#a8c0ff" stroke-width="0.6" stroke-opacity="0.12" transform="rotate(40,256,256)"/>
+      <line x1="160" y1="375" x2="160" y2="137" stroke="#a8c0ff" stroke-width="8" stroke-opacity="0.15" stroke-linecap="round"/>
+      <line x1="160" y1="137" x2="352" y2="375" stroke="#c0a8ff" stroke-width="8" stroke-opacity="0.12" stroke-linecap="round"/>
+      <line x1="352" y1="375" x2="352" y2="137" stroke="#ffd6a8" stroke-width="8" stroke-opacity="0.15" stroke-linecap="round"/>
+      <line x1="160" y1="375" x2="160" y2="137" stroke="#a8c0ff" stroke-width="2.8" stroke-opacity="0.9" stroke-linecap="round" filter="url(#bLine)"/>
+      <line x1="160" y1="137" x2="352" y2="375" stroke="#d0c0ff" stroke-width="2.5" stroke-opacity="0.8" stroke-linecap="round" filter="url(#bLine)"/>
+      <line x1="352" y1="375" x2="352" y2="137" stroke="#ffd6a8" stroke-width="2.8" stroke-opacity="0.9" stroke-linecap="round" filter="url(#bLine)"/>
+      <circle cx="160" cy="375" r="8" fill="#a8c0ff" opacity="0.8" filter="url(#bDot)"/><circle cx="160" cy="375" r="3.5" fill="#fff"/>
+      <g filter="url(#bGlow)"><circle cx="160" cy="137" r="11" fill="#fff"/><circle cx="160" cy="137" r="16" fill="#a8c0ff" opacity="0.15"/>
+        <line x1="128" y1="137" x2="192" y2="137" stroke="#fff" stroke-width="1.5" stroke-opacity="0.55" stroke-linecap="round"/>
+        <line x1="160" y1="105" x2="160" y2="169" stroke="#fff" stroke-width="1.5" stroke-opacity="0.55" stroke-linecap="round"/>
+      </g>
+      <circle cx="352" cy="375" r="8" fill="#c0a8ff" opacity="0.8" filter="url(#bDot)"/><circle cx="352" cy="375" r="3.5" fill="#fff" opacity="0.85"/>
+      <g filter="url(#bDot)"><circle cx="352" cy="137" r="9" fill="#ffd6a8" opacity="0.85"/><circle cx="352" cy="137" r="4" fill="#fff" opacity="0.9"/></g>
+      <circle cx="160" cy="256" r="3.5" fill="#a8e8ff" opacity="0.65" filter="url(#bDot)"/>
+      <circle cx="256" cy="256" r="3.5" fill="#ffa8f0" opacity="0.4" filter="url(#bDot)"/>
+      <circle cx="352" cy="256" r="3.5" fill="#ffcfa8" opacity="0.6" filter="url(#bDot)"/>
+    </svg>
+    <span class="brand-text">Nitin Ganneboina</span>
+  </div>
 
   <!-- STATUS BAR -->
   <div id="status-bar">
