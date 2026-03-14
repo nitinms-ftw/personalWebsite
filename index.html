@@ -145,8 +145,8 @@
     .wp::before {
       content:''; position:absolute;
       top:50%; left:50%; transform:translate(-50%,-50%);
-      width:140%; height:180%; border-radius:50%;
-      background:radial-gradient(ellipse at center, rgba(3,1,8,0.7) 0%, rgba(3,1,8,0.3) 40%, transparent 70%);
+      width:160%; height:200%; border-radius:50%;
+      background:radial-gradient(ellipse at center, rgba(3,1,8,0.55) 0%, rgba(3,1,8,0.25) 30%, rgba(3,1,8,0.08) 55%, transparent 75%);
       pointer-events:none; z-index:-1;
     }
     .wp .label {
@@ -161,13 +161,13 @@
       font-family:'Space Grotesk',sans-serif;
       font-weight:300; line-height:1.15;
       margin-bottom:18px; letter-spacing:0.01em;
-      text-shadow: 0 0 30px rgba(3,1,8,0.9), 0 0 60px rgba(3,1,8,0.7), 0 2px 4px rgba(3,1,8,0.8);
+      text-shadow: 0 0 40px rgba(3,1,8,0.95), 0 0 80px rgba(3,1,8,0.6), 0 2px 4px rgba(0,0,0,0.5);
       transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s;
     }
     .wp p {
       font-weight:300; line-height:1.8;
       max-width:500px; margin:0 auto; opacity:0.7;
-      text-shadow: 0 0 20px rgba(3,1,8,0.9), 0 0 40px rgba(3,1,8,0.6);
+      text-shadow: 0 0 30px rgba(3,1,8,0.95), 0 0 60px rgba(3,1,8,0.5);
       transition: opacity 0.8s ease 0.25s;
     }
     .wp .tags {
@@ -420,7 +420,7 @@
     #vignette {
       position:fixed; inset:0; z-index:3;
       pointer-events:none;
-      background:radial-gradient(ellipse at center, transparent 45%, rgba(3,1,8,0.7) 100%);
+      background:radial-gradient(ellipse at center, transparent 55%, rgba(3,1,8,0.45) 100%);
     }
 
     /* ─── SCANLINES (subtle CRT feel) ─── */
@@ -673,7 +673,7 @@
       tDiffuse: { value: null },
       uTime: { value: 0.0 },
       uGrainIntensity: { value: 0.04 },
-      uVignetteIntensity: { value: 0.4 },
+      uVignetteIntensity: { value: 0.25 },
       uSpeed: { value: 0.0 }
     },
     vertexShader: `
@@ -903,7 +903,7 @@
   // THREE.JS — HIGH-END SETUP
   // ═══════════════════════════════════════
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030108, 0.0018);
+  scene.fog = new THREE.FogExp2(0x030108, 0.0012);
   const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -915,7 +915,7 @@
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearColor(0x030108);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.25;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   document.body.prepend(renderer.domElement);
 
@@ -929,9 +929,9 @@
   // Unreal Bloom — the key to that premium glow
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(innerWidth, innerHeight),
-    0.4,    // strength — reduced to avoid washing out text
-    0.4,    // radius
-    0.35    // threshold — higher = only bright things bloom
+    0.6,    // strength — rich space glow
+    0.5,    // radius
+    0.3     // threshold — bloom the bright stars
   );
   composer.addPass(bloomPass);
 
@@ -1041,10 +1041,10 @@
           float d = length(vec2(uv.x, uv.y * (1.0 + uSpeed*6.0))) * 2.0;
           if(d > 1.0) discard;
 
-          // Multi-layer glow: sharp core + soft halo + outer glow
-          float core = exp(-d*d*10.0);
-          float halo = exp(-d*d*3.0) * 0.25;
-          float outer = exp(-d*d*1.2) * 0.06;
+          // Multi-layer glow: crisp core + warm halo + faint outer
+          float core = exp(-d*d*12.0);          // tight bright center
+          float halo = exp(-d*d*3.5) * 0.3;     // soft glow ring
+          float outer = exp(-d*d*1.0) * 0.08;   // faint aura
           float a = (core + halo + outer) * vA * uBright;
 
           // Warp brightening
@@ -1060,10 +1060,65 @@
     return { points:new THREE.Points(g,m), mat:m };
   }
 
-  const near = mkStars(1400, 55, [0.2,1.8], 0.45);
-  const far = mkStars(3000, 250, [0.15,1.0], 0.18);
-  const dust = mkStars(800, 150, [0.06,0.3], 0.06);
-  scene.add(near.points); scene.add(far.points); scene.add(dust.points);
+  // Close stars — bright, big, fly past you (the "you're IN space" layer)
+  const close = mkStars(400, 25, [0.8,4.0], 0.7);
+  // Medium stars — the main field
+  const near = mkStars(2500, 65, [0.3,2.2], 0.55);
+  // Distant stars — dense background carpet
+  const far = mkStars(5000, 300, [0.12,0.8], 0.22);
+  // Cosmic dust — barely visible, adds density
+  const dust = mkStars(1500, 180, [0.05,0.25], 0.08);
+  scene.add(close.points); scene.add(near.points); scene.add(far.points); scene.add(dust.points);
+
+  // ═══════════════════════════════════════
+  // FOREGROUND DRIFT PARTICLES — "I'm in space" layer
+  // Large, soft, slowly drifting particles around the camera
+  // ═══════════════════════════════════════
+  const driftCount = 60;
+  const driftGeo = new THREE.BufferGeometry();
+  const driftPositions = new Float32Array(driftCount * 3);
+  const driftSeeds = new Float32Array(driftCount);
+  const driftSizes = new Float32Array(driftCount);
+  for (let i = 0; i < driftCount; i++) {
+    driftSeeds[i] = Math.random() * 100;
+    driftSizes[i] = 3 + Math.random() * 8;
+    // Initial positions don't matter — updated every frame
+    driftPositions[i*3] = 0;
+    driftPositions[i*3+1] = 0;
+    driftPositions[i*3+2] = 0;
+  }
+  driftGeo.setAttribute('position', new THREE.Float32BufferAttribute(driftPositions, 3));
+  driftGeo.setAttribute('seed', new THREE.Float32BufferAttribute(driftSeeds, 1));
+  driftGeo.setAttribute('size', new THREE.Float32BufferAttribute(driftSizes, 1));
+  const driftMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      attribute float seed;
+      attribute float size;
+      uniform float uTime;
+      varying float vA;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        float dist = -mv.z;
+        // Fade: visible only when close
+        vA = smoothstep(15.0, 2.0, dist) * (0.15 + 0.15 * sin(uTime * 0.5 + seed));
+        gl_PointSize = size * (120.0 / max(dist, 0.5));
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      varying float vA;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        if (d > 1.0) discard;
+        float a = exp(-d*d*1.5) * vA;
+        gl_FragColor = vec4(0.7, 0.8, 1.0, a);
+      }
+    `,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const driftPoints = new THREE.Points(driftGeo, driftMat);
+  scene.add(driftPoints);
 
   // ═══════════════════════════════════════
   // INTERACTIVE NEBULA SYSTEM — GPU Particles
@@ -1729,6 +1784,20 @@
     camera.rotation.z = -tan.x * 0.06 + smoothMouseX * 0.02 + Math.sin(t * 0.3) * 0.003;
 
     // Star uniforms
+    // Foreground drift particles — orbit around camera
+    const dp = driftGeo.attributes.position.array;
+    for (let i = 0; i < driftCount; i++) {
+      const s = driftSeeds[i];
+      const radius = 4 + (s % 5) * 2;
+      dp[i*3]   = camera.position.x + Math.sin(t * 0.08 + s * 1.3) * radius + Math.cos(t * 0.12 + s * 0.7) * 2;
+      dp[i*3+1] = camera.position.y + Math.cos(t * 0.06 + s * 1.7) * radius * 0.6 + Math.sin(t * 0.1 + s) * 1.5;
+      dp[i*3+2] = camera.position.z + Math.sin(t * 0.1 + s * 2.1) * radius + Math.cos(t * 0.07 + s * 1.1) * 3;
+    }
+    driftGeo.attributes.position.needsUpdate = true;
+    driftMat.uniforms.uTime.value = t;
+
+    close.mat.uniforms.uTime.value = t;
+    close.mat.uniforms.uSpeed.value = smoothSpeed;
     near.mat.uniforms.uTime.value = t;
     near.mat.uniforms.uSpeed.value = smoothSpeed;
     far.mat.uniforms.uTime.value = t;
@@ -1828,8 +1897,8 @@
     filmPass.uniforms.uSpeed.value = smoothSpeed;
 
     // Bloom reacts to speed
-    bloomPass.strength = 0.35 + smoothSpeed * 0.8;
-    bloomPass.radius = 0.35 + smoothSpeed * 0.2;
+    bloomPass.strength = 0.55 + smoothSpeed * 1.2;
+    bloomPass.radius = 0.45 + smoothSpeed * 0.25;
 
     // Audio
     updateAudio(smoothSpeed);
