@@ -142,22 +142,32 @@
                   visibility 0s 0s,
                   filter 1.4s cubic-bezier(0.16,1,0.3,1);
     }
+    .wp::before {
+      content:''; position:absolute;
+      top:50%; left:50%; transform:translate(-50%,-50%);
+      width:140%; height:180%; border-radius:50%;
+      background:radial-gradient(ellipse at center, rgba(3,1,8,0.7) 0%, rgba(3,1,8,0.3) 40%, transparent 70%);
+      pointer-events:none; z-index:-1;
+    }
     .wp .label {
       font-size:0.6rem; letter-spacing:0.35em;
       text-transform:uppercase; margin-bottom:16px; opacity:0;
       transform: translateY(10px);
+      text-shadow: 0 0 20px rgba(3,1,8,0.9);
       transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s;
     }
-    .wp.active .label { opacity:0.6; transform: translateY(0); }
+    .wp.active .label { opacity:0.8; transform: translateY(0); }
     .wp h2 {
       font-family:'Space Grotesk',sans-serif;
       font-weight:300; line-height:1.15;
       margin-bottom:18px; letter-spacing:0.01em;
+      text-shadow: 0 0 30px rgba(3,1,8,0.9), 0 0 60px rgba(3,1,8,0.7), 0 2px 4px rgba(3,1,8,0.8);
       transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s;
     }
     .wp p {
       font-weight:300; line-height:1.8;
-      max-width:500px; margin:0 auto; opacity:0.55;
+      max-width:500px; margin:0 auto; opacity:0.7;
+      text-shadow: 0 0 20px rgba(3,1,8,0.9), 0 0 40px rgba(3,1,8,0.6);
       transition: opacity 0.8s ease 0.25s;
     }
     .wp .tags {
@@ -197,7 +207,7 @@
     }
     .wp-0 p { font-size:clamp(0.95rem,2.5vw,1.15rem); }
     /* Standard waypoints */
-    .wp:not(.wp-0) h2 { font-size:clamp(1.6rem,4.5vw,2.8rem); color:#fff; }
+    .wp:not(.wp-0) h2 { font-size:clamp(1.6rem,4.5vw,2.8rem); color:#fff; font-weight:400; }
     .wp:not(.wp-0) p { font-size:clamp(0.85rem,2vw,1rem); }
     /* Accent colors per section */
     .wp-1 .label { color:#a8ffc0; }
@@ -919,9 +929,9 @@
   // Unreal Bloom — the key to that premium glow
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(innerWidth, innerHeight),
-    0.8,    // strength
-    0.6,    // radius
-    0.25    // threshold
+    0.4,    // strength — reduced to avoid washing out text
+    0.4,    // radius
+    0.35    // threshold — higher = only bright things bloom
   );
   composer.addPass(bloomPass);
 
@@ -1032,9 +1042,9 @@
           if(d > 1.0) discard;
 
           // Multi-layer glow: sharp core + soft halo + outer glow
-          float core = exp(-d*d*8.0);
-          float halo = exp(-d*d*2.0) * 0.4;
-          float outer = exp(-d*d*0.8) * 0.1;
+          float core = exp(-d*d*10.0);
+          float halo = exp(-d*d*3.0) * 0.25;
+          float outer = exp(-d*d*1.2) * 0.06;
           float a = (core + halo + outer) * vA * uBright;
 
           // Warp brightening
@@ -1050,9 +1060,9 @@
     return { points:new THREE.Points(g,m), mat:m };
   }
 
-  const near = mkStars(2000, 55, [0.3,3.0], 0.9);
-  const far = mkStars(4000, 250, [0.2,1.6], 0.35);
-  const dust = mkStars(1200, 150, [0.08,0.4], 0.12);
+  const near = mkStars(1400, 55, [0.2,1.8], 0.45);
+  const far = mkStars(3000, 250, [0.15,1.0], 0.18);
+  const dust = mkStars(800, 150, [0.06,0.3], 0.06);
   scene.add(near.points); scene.add(far.points); scene.add(dust.points);
 
   // ═══════════════════════════════════════
@@ -1818,8 +1828,8 @@
     filmPass.uniforms.uSpeed.value = smoothSpeed;
 
     // Bloom reacts to speed
-    bloomPass.strength = 0.7 + smoothSpeed * 1.5;
-    bloomPass.radius = 0.5 + smoothSpeed * 0.3;
+    bloomPass.strength = 0.35 + smoothSpeed * 0.8;
+    bloomPass.radius = 0.35 + smoothSpeed * 0.2;
 
     // Audio
     updateAudio(smoothSpeed);
