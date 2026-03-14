@@ -24,7 +24,34 @@
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
     html::-webkit-scrollbar { display:none; }
-    body { cursor:default; }
+    body { cursor:none; }
+
+    /* ─── CUSTOM CURSOR ─── */
+    #cursor-dot {
+      position:fixed; z-index:9999; pointer-events:none;
+      width:8px; height:8px; border-radius:50%;
+      background:rgba(168,192,255,0.9);
+      transform:translate(-50%,-50%);
+      transition: width 0.3s, height 0.3s, background 0.3s;
+      mix-blend-mode: screen;
+    }
+    #cursor-ring {
+      position:fixed; z-index:9998; pointer-events:none;
+      width:40px; height:40px; border-radius:50%;
+      border:1px solid rgba(168,192,255,0.25);
+      transform:translate(-50%,-50%);
+      transition: width 0.4s cubic-bezier(0.16,1,0.3,1), height 0.4s cubic-bezier(0.16,1,0.3,1),
+                  border-color 0.3s, opacity 0.3s;
+    }
+    body:hover #cursor-dot, body:hover #cursor-ring { opacity:1; }
+    .cursor-hover #cursor-dot {
+      width:14px; height:14px;
+      background:rgba(168,192,255,0.5);
+    }
+    .cursor-hover #cursor-ring {
+      width:60px; height:60px;
+      border-color:rgba(168,192,255,0.5);
+    }
 
     /* ─── LOADING SCREEN ─── */
     #loader {
@@ -32,26 +59,46 @@
       background:#030108;
       display:flex; flex-direction:column;
       align-items:center; justify-content:center;
-      transition: opacity 1.8s cubic-bezier(0.16,1,0.3,1);
+      transition: opacity 2s cubic-bezier(0.16,1,0.3,1);
     }
     #loader.done { opacity:0; pointer-events:none; }
     #loader.ready { pointer-events:none; }
+    .loader-logo {
+      width:60px; height:60px; margin-bottom:30px;
+      position:relative;
+    }
+    .loader-logo svg {
+      width:100%; height:100%;
+      animation: logoSpin 4s linear infinite;
+    }
+    @keyframes logoSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     .loader-text {
       font-family:'Space Grotesk',sans-serif;
-      font-size:0.8rem; letter-spacing:0.3em;
+      font-size:0.7rem; letter-spacing:0.4em;
       text-transform:uppercase;
-      color:rgba(168,192,255,0.4);
-      margin-bottom:20px;
+      color:rgba(168,192,255,0.35);
+      margin-bottom:24px;
     }
     .loader-bar {
-      width:120px; height:1px;
-      background:rgba(168,192,255,0.1);
+      width:200px; height:1px;
+      background:rgba(168,192,255,0.06);
       border-radius:1px; overflow:hidden;
+      position:relative;
     }
     .loader-fill {
       height:100%; width:0%;
-      background:rgba(168,192,255,0.5);
+      background:linear-gradient(90deg, rgba(168,192,255,0.3), rgba(168,192,255,0.7));
       transition: width 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .loader-percent {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:0.6rem; letter-spacing:0.2em;
+      color:rgba(168,192,255,0.2);
+      margin-top:14px;
+      font-variant-numeric: tabular-nums;
     }
 
     /* ─── TOUCH LAYER ─── */
@@ -64,7 +111,6 @@
     canvas {
       display:block; position:fixed; top:0; left:0;
       width:100%; height:100dvh; height:100%; z-index:1;
-      image-rendering: high-quality;
     }
 
     /* ─── UI OVERLAY ─── */
@@ -74,26 +120,35 @@
       display:flex; align-items:center; justify-content:center;
     }
 
-    /* ─── WAYPOINT TEXT ─── */
+    /* ─── MAGNETIC TEXT REVEAL ─── */
     .wp {
       position:absolute; width:90%; max-width:680px;
       text-align:center; pointer-events:none;
-      opacity:0; transform:translateY(32px) scale(0.96);
+      opacity:0; transform:translateY(50px) scale(0.94);
       visibility:hidden;
-      transition: opacity 1.2s cubic-bezier(0.16,1,0.3,1), transform 1.2s cubic-bezier(0.16,1,0.3,1), visibility 0s 1.2s;
-      will-change: opacity, transform;
+      transition: opacity 1.4s cubic-bezier(0.16,1,0.3,1),
+                  transform 1.4s cubic-bezier(0.16,1,0.3,1),
+                  visibility 0s 1.4s,
+                  filter 1.4s cubic-bezier(0.16,1,0.3,1);
+      will-change: opacity, transform, filter;
+      filter: blur(8px);
     }
     .wp.active {
       opacity:1; transform:translateY(0) scale(1);
       visibility:visible;
-      transition: opacity 1.2s cubic-bezier(0.16,1,0.3,1), transform 1.2s cubic-bezier(0.16,1,0.3,1), visibility 0s 0s;
+      filter: blur(0px);
+      transition: opacity 1.4s cubic-bezier(0.16,1,0.3,1),
+                  transform 1.4s cubic-bezier(0.16,1,0.3,1),
+                  visibility 0s 0s,
+                  filter 1.4s cubic-bezier(0.16,1,0.3,1);
     }
     .wp .label {
-      font-size:0.65rem; letter-spacing:0.3em;
-      text-transform:uppercase; margin-bottom:14px; opacity:0.5;
-      transition: opacity 0.8s ease 0.1s;
+      font-size:0.6rem; letter-spacing:0.35em;
+      text-transform:uppercase; margin-bottom:16px; opacity:0;
+      transform: translateY(10px);
+      transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s;
     }
-    .wp.active .label { opacity:0.7; }
+    .wp.active .label { opacity:0.6; transform: translateY(0); }
     .wp h2 {
       font-family:'Space Grotesk',sans-serif;
       font-weight:300; line-height:1.15;
@@ -101,37 +156,50 @@
       transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s;
     }
     .wp p {
-      font-weight:300; line-height:1.75;
+      font-weight:300; line-height:1.8;
       max-width:500px; margin:0 auto; opacity:0.55;
       transition: opacity 0.8s ease 0.25s;
     }
     .wp .tags {
-      margin-top:14px;
+      margin-top:16px;
       transition: opacity 0.8s ease 0.35s;
     }
     .wp .tag {
-      display:inline-block; margin:3px; padding:3px 12px;
-      border-radius:20px; font-size:0.6rem; letter-spacing:0.06em;
-      border:1px solid rgba(168,192,255,0.12);
-      color:rgba(168,192,255,0.45);
-      transition: border-color 0.4s, color 0.4s;
+      display:inline-block; margin:3px; padding:4px 14px;
+      border-radius:20px; font-size:0.58rem; letter-spacing:0.08em;
+      border:1px solid rgba(168,192,255,0.08);
+      color:rgba(168,192,255,0.35);
+      transition: border-color 0.6s, color 0.6s, transform 0.6s, background 0.6s;
+      backdrop-filter: blur(4px);
     }
     .wp.active .tag {
-      border-color:rgba(168,192,255,0.2);
+      border-color:rgba(168,192,255,0.18);
       color:rgba(168,192,255,0.55);
+    }
+    .wp.active .tag:hover {
+      border-color:rgba(168,192,255,0.4);
+      color:rgba(168,192,255,0.8);
+      background:rgba(168,192,255,0.05);
+      transform:translateY(-1px);
     }
 
     /* Hero waypoint */
     .wp-0 h2 {
-      font-size:clamp(2.4rem,7vw,5rem);
-      background:linear-gradient(135deg,#a8c0ff,#fff 50%,#ffd6a8);
+      font-size:clamp(2.6rem,7.5vw,5.5rem);
+      background:linear-gradient(135deg,#a8c0ff 0%,#fff 40%,#ffd6a8 100%);
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      animation: heroShimmer 6s ease infinite;
+      background-size: 200% 200%;
+    }
+    @keyframes heroShimmer {
+      0%,100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
     }
     .wp-0 p { font-size:clamp(0.95rem,2.5vw,1.15rem); }
     /* Standard waypoints */
     .wp:not(.wp-0) h2 { font-size:clamp(1.6rem,4.5vw,2.8rem); color:#fff; }
     .wp:not(.wp-0) p { font-size:clamp(0.85rem,2vw,1rem); }
-    /* Accent colors */
+    /* Accent colors per section */
     .wp-1 .label { color:#a8ffc0; }
     .wp-2 .label { color:#ffd6a8; }
     .wp-3 .label { color:#ffa8f0; }
@@ -145,118 +213,187 @@
       position:fixed; inset:0; z-index:30;
       display:flex; flex-direction:column;
       align-items:center; justify-content:center;
-      background:rgba(3,1,8,0.88);
+      background:rgba(3,1,8,0.92);
       pointer-events:none;
-      transition: opacity 1.8s cubic-bezier(0.16,1,0.3,1);
+      transition: opacity 2s cubic-bezier(0.16,1,0.3,1);
     }
     #quote-overlay.gone { opacity:0; pointer-events:none; }
     .quote-text {
-      max-width:480px; width:88%; text-align:center;
+      max-width:520px; width:88%; text-align:center;
       font-size:clamp(0.82rem,2.2vw,1.05rem);
-      font-style:italic; line-height:1.9;
-      letter-spacing:0.02em;
-      color:rgba(168,192,255,0.4);
-      opacity:0; transform:translateY(12px);
-      animation: qIn 3s ease 0.2s forwards;
+      font-style:italic; line-height:2;
+      letter-spacing:0.03em;
+      color:rgba(168,192,255,0.35);
+      opacity:0; transform:translateY(16px);
+      animation: qIn 3.5s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
     }
     .scroll-prompt {
-      margin-top:36px; display:flex; flex-direction:column;
-      align-items:center; gap:8px;
-      opacity:0; animation: qIn 1.5s ease 3.2s forwards;
+      margin-top:40px; display:flex; flex-direction:column;
+      align-items:center; gap:10px;
+      opacity:0; animation: qIn 1.5s ease 3.5s forwards;
     }
     .scroll-prompt span {
-      font-size:0.6rem; letter-spacing:0.3em;
-      text-transform:uppercase; color:rgba(168,192,255,0.3);
+      font-size:0.55rem; letter-spacing:0.35em;
+      text-transform:uppercase; color:rgba(168,192,255,0.25);
     }
     .scroll-prompt .arrow {
-      width:16px; height:16px;
-      border-right:1px solid rgba(168,192,255,0.3);
-      border-bottom:1px solid rgba(168,192,255,0.3);
+      width:18px; height:18px;
+      border-right:1px solid rgba(168,192,255,0.25);
+      border-bottom:1px solid rgba(168,192,255,0.25);
       transform:rotate(45deg);
-      animation: bounce 2s ease infinite;
+      animation: bounce 2.5s cubic-bezier(0.16,1,0.3,1) infinite;
     }
     @keyframes qIn { to { opacity:1; transform:translateY(0); } }
     @keyframes bounce {
-      0%,100% { transform:rotate(45deg) translate(0,0); opacity:0.3; }
-      50% { transform:rotate(45deg) translate(4px,4px); opacity:0.8; }
+      0%,100% { transform:rotate(45deg) translate(0,0); opacity:0.25; }
+      50% { transform:rotate(45deg) translate(5px,5px); opacity:0.7; }
     }
 
-    /* ─── PROGRESS DOTS ─── */
+    /* ─── PROGRESS DOTS — VERTICAL NAV ─── */
     #progress {
-      position:fixed; right:20px; top:50%; transform:translateY(-50%);
-      z-index:20; display:flex; flex-direction:column; gap:12px;
+      position:fixed; right:24px; top:50%; transform:translateY(-50%);
+      z-index:20; display:flex; flex-direction:column; gap:14px;
+      pointer-events:auto;
     }
     .dot {
-      width:7px; height:7px; border-radius:50%;
-      border:1px solid rgba(168,192,255,0.2);
+      width:6px; height:6px; border-radius:50%;
+      border:1px solid rgba(168,192,255,0.15);
       background:transparent; cursor:pointer;
-      transition:all 0.5s cubic-bezier(0.16,1,0.3,1); position:relative;
+      transition:all 0.6s cubic-bezier(0.16,1,0.3,1); position:relative;
+    }
+    .dot:hover {
+      border-color:rgba(168,192,255,0.5);
+      transform: scale(1.5);
     }
     .dot.active {
-      background:rgba(168,192,255,0.7);
-      border-color:rgba(168,192,255,0.7);
-      box-shadow:0 0 12px rgba(168,192,255,0.4);
+      background:rgba(168,192,255,0.8);
+      border-color:rgba(168,192,255,0.8);
+      box-shadow:0 0 16px rgba(168,192,255,0.5), 0 0 4px rgba(168,192,255,0.8);
+      transform: scale(1.3);
     }
     .dot .tip {
-      position:absolute; right:18px; top:50%; transform:translateY(-50%);
-      font-size:0.55rem; letter-spacing:0.1em; text-transform:uppercase;
-      color:rgba(168,192,255,0.35); white-space:nowrap;
-      opacity:0; transition:opacity 0.3s; pointer-events:none;
+      position:absolute; right:20px; top:50%; transform:translateY(-50%);
+      font-size:0.52rem; letter-spacing:0.12em; text-transform:uppercase;
+      color:rgba(168,192,255,0.3); white-space:nowrap;
+      opacity:0; transform:translateY(-50%) translateX(5px);
+      transition:opacity 0.3s, transform 0.3s;
+      pointer-events:none;
     }
-    .dot:hover .tip { opacity:1; }
+    .dot:hover .tip { opacity:1; transform:translateY(-50%) translateX(0); }
 
     /* ─── SOUND TOGGLE ─── */
     #sound-btn {
-      position:fixed; top:20px; right:20px; z-index:20;
-      background:none; border:1px solid rgba(168,192,255,0.15);
-      border-radius:50%; width:36px; height:36px;
+      position:fixed; top:24px; right:24px; z-index:20;
+      background:rgba(168,192,255,0.03); border:1px solid rgba(168,192,255,0.1);
+      border-radius:50%; width:38px; height:38px;
       display:flex; align-items:center; justify-content:center;
-      cursor:pointer; color:rgba(168,192,255,0.4);
-      font-size:0.9rem; transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+      cursor:pointer; color:rgba(168,192,255,0.35);
+      font-size:0.85rem; transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+      backdrop-filter:blur(8px);
     }
-    #sound-btn:hover { border-color:rgba(168,192,255,0.4); color:rgba(168,192,255,0.8); }
+    #sound-btn:hover {
+      border-color:rgba(168,192,255,0.35);
+      color:rgba(168,192,255,0.8);
+      background:rgba(168,192,255,0.06);
+    }
+
+    /* ─── TOP LEFT BRAND ─── */
+    #brand {
+      position:fixed; top:24px; left:28px; z-index:20;
+      font-family:'Space Grotesk',sans-serif;
+      font-size:0.65rem; letter-spacing:0.25em;
+      text-transform:uppercase;
+      color:rgba(168,192,255,0.3);
+      pointer-events:none;
+      opacity:0;
+      animation: fadeInSlow 2s ease 1s forwards;
+    }
+    @keyframes fadeInSlow { to { opacity:1; } }
+
+    /* ─── BOTTOM STATUS BAR ─── */
+    #status-bar {
+      position:fixed; bottom:24px; left:28px; z-index:20;
+      display:flex; gap:24px; align-items:center;
+      pointer-events:none;
+      opacity:0;
+      animation: fadeInSlow 2s ease 1.5s forwards;
+    }
+    .status-item {
+      font-size:0.5rem; letter-spacing:0.2em;
+      text-transform:uppercase;
+      color:rgba(168,192,255,0.2);
+      font-family:'Space Grotesk',sans-serif;
+    }
+    .status-item span { color:rgba(168,192,255,0.45); }
+
+    /* ─── SECTION PROGRESS LINE ─── */
+    #section-progress {
+      position:fixed; top:0; left:0; z-index:20;
+      width:0%; height:1px;
+      background:linear-gradient(90deg, transparent, rgba(168,192,255,0.4), transparent);
+      transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+      pointer-events:none;
+    }
 
     /* ─── CONNECT SECTION ─── */
     .social-row {
       display:flex; gap:10px; justify-content:center;
-      margin-top:20px; flex-wrap:wrap; pointer-events:auto;
+      margin-top:22px; flex-wrap:wrap; pointer-events:auto;
     }
     .social-link {
-      display:flex; align-items:center; gap:6px;
-      padding:7px 14px; border:1px solid rgba(168,192,255,0.1);
-      border-radius:30px; color:rgba(168,192,255,0.45);
-      text-decoration:none; font-size:0.7rem; transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+      display:flex; align-items:center; gap:7px;
+      padding:8px 16px; border:1px solid rgba(168,192,255,0.08);
+      border-radius:30px; color:rgba(168,192,255,0.4);
+      text-decoration:none; font-size:0.68rem;
+      transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+      backdrop-filter:blur(4px);
+      background:rgba(168,192,255,0.02);
     }
-    .social-link:hover { color:#fff; border-color:rgba(168,192,255,0.35); background:rgba(168,192,255,0.05); }
+    .social-link:hover {
+      color:#fff; border-color:rgba(168,192,255,0.35);
+      background:rgba(168,192,255,0.06);
+      transform:translateY(-2px);
+      box-shadow:0 4px 20px rgba(168,192,255,0.1);
+    }
     .social-link svg { width:13px; height:13px; fill:currentColor; }
 
     .contact-form {
-      max-width:380px; margin:16px auto 0; text-align:left; pointer-events:auto;
+      max-width:380px; margin:18px auto 0; text-align:left; pointer-events:auto;
     }
-    .fr { margin-bottom:10px; }
+    .fr { margin-bottom:12px; }
     .fr label {
-      display:block; font-size:0.6rem; letter-spacing:0.1em;
-      text-transform:uppercase; color:rgba(168,192,255,0.3); margin-bottom:3px;
+      display:block; font-size:0.55rem; letter-spacing:0.12em;
+      text-transform:uppercase; color:rgba(168,192,255,0.25); margin-bottom:4px;
     }
     .fr input, .fr textarea {
-      width:100%; padding:9px 12px;
-      background:rgba(168,192,255,0.03);
-      border:1px solid rgba(168,192,255,0.08);
-      border-radius:7px; color:#e0e6f0;
+      width:100%; padding:10px 14px;
+      background:rgba(168,192,255,0.02);
+      border:1px solid rgba(168,192,255,0.06);
+      border-radius:8px; color:#e0e6f0;
       font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:300;
-      outline:none; transition:border-color 0.4s cubic-bezier(0.16,1,0.3,1);
+      outline:none; transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+      backdrop-filter:blur(4px);
     }
-    .fr input:focus, .fr textarea:focus { border-color:rgba(168,192,255,0.3); }
+    .fr input:focus, .fr textarea:focus {
+      border-color:rgba(168,192,255,0.3);
+      background:rgba(168,192,255,0.04);
+      box-shadow:0 0 20px rgba(168,192,255,0.05);
+    }
     .fr textarea { min-height:70px; resize:vertical; }
-    .fr input::placeholder, .fr textarea::placeholder { color:rgba(168,192,255,0.15); }
+    .fr input::placeholder, .fr textarea::placeholder { color:rgba(168,192,255,0.12); }
     .send-btn {
-      display:block; width:100%; padding:11px;
-      background:rgba(168,192,255,0.06); border:1px solid rgba(168,192,255,0.15);
-      border-radius:7px; color:rgba(168,192,255,0.7);
+      display:block; width:100%; padding:12px;
+      background:rgba(168,192,255,0.04); border:1px solid rgba(168,192,255,0.12);
+      border-radius:8px; color:rgba(168,192,255,0.6);
       font-family:'Inter',sans-serif; font-size:0.82rem;
-      cursor:pointer; transition:all 0.4s cubic-bezier(0.16,1,0.3,1); letter-spacing:0.05em;
+      cursor:pointer; transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+      letter-spacing:0.06em;
+      backdrop-filter:blur(4px);
     }
-    .send-btn:hover { background:rgba(168,192,255,0.12); border-color:rgba(168,192,255,0.35); color:#fff; }
+    .send-btn:hover {
+      background:rgba(168,192,255,0.1); border-color:rgba(168,192,255,0.35);
+      color:#fff; box-shadow:0 4px 20px rgba(168,192,255,0.1);
+    }
     .form-status { text-align:center; margin-top:8px; font-size:0.75rem; min-height:18px; }
     .form-status.ok { color:#a8ffc0; }
     .form-status.err { color:#ff8888; }
@@ -265,7 +402,7 @@
     #warp {
       position:fixed; inset:0; z-index:2;
       pointer-events:none; opacity:0;
-      background:radial-gradient(ellipse at center, transparent 30%, rgba(168,192,255,0.03) 100%);
+      background:radial-gradient(ellipse at center, transparent 20%, rgba(168,192,255,0.04) 100%);
       transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1);
     }
 
@@ -273,10 +410,20 @@
     #vignette {
       position:fixed; inset:0; z-index:3;
       pointer-events:none;
-      background:radial-gradient(ellipse at center, transparent 50%, rgba(3,1,8,0.6) 100%);
+      background:radial-gradient(ellipse at center, transparent 45%, rgba(3,1,8,0.7) 100%);
     }
 
-    /* ─── PROJECT STARS ─── */
+    /* ─── SCANLINES (subtle CRT feel) ─── */
+    #scanlines {
+      position:fixed; inset:0; z-index:4;
+      pointer-events:none; opacity:0.03;
+      background:repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(168,192,255,0.03) 2px, rgba(168,192,255,0.03) 4px
+      );
+    }
+
+    /* ─── PROJECT CARDS ─── */
     .projects-grid {
       display:grid; grid-template-columns:1fr 1fr;
       gap:14px; margin-top:22px; pointer-events:auto;
@@ -285,25 +432,35 @@
     .proj {
       display:flex; align-items:flex-start; gap:12px;
       padding:14px 16px;
-      border:1px solid rgba(168,192,255,0.08);
+      border:1px solid rgba(168,192,255,0.06);
       border-radius:12px;
-      background:rgba(168,192,255,0.02);
+      background:rgba(168,192,255,0.015);
       text-decoration:none; color:inherit;
-      transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+      transition:all 0.6s cubic-bezier(0.16,1,0.3,1);
       position:relative; overflow:hidden;
+      backdrop-filter:blur(4px);
     }
     .proj:hover {
       border-color:rgba(168,192,255,0.2);
-      background:rgba(168,192,255,0.05);
-      transform:translateY(-2px);
+      background:rgba(168,192,255,0.04);
+      transform:translateY(-3px);
+      box-shadow:0 8px 30px rgba(168,192,255,0.08);
     }
     .proj::before {
       content:''; position:absolute;
       top:0; left:0; right:0; height:1px;
       background:linear-gradient(90deg,transparent,var(--accent,rgba(168,192,255,0.3)),transparent);
-      opacity:0; transition:opacity 0.5s cubic-bezier(0.16,1,0.3,1);
+      opacity:0; transition:opacity 0.6s cubic-bezier(0.16,1,0.3,1);
     }
     .proj:hover::before { opacity:1; }
+    /* Hover glow effect */
+    .proj::after {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(168,192,255,0.06) 0%, transparent 60%);
+      opacity:0; transition:opacity 0.4s;
+      pointer-events:none;
+    }
+    .proj:hover::after { opacity:1; }
     .proj-icon {
       font-size:1.6rem; flex-shrink:0; margin-top:2px;
     }
@@ -324,14 +481,14 @@
       text-transform:uppercase; padding:2px 8px;
       border-radius:10px;
     }
-    .proj-badge.yt { background:rgba(255,0,0,0.12); color:rgba(255,100,100,0.7); }
-    .proj-badge.gh { background:rgba(168,192,255,0.08); color:rgba(168,192,255,0.5); }
+    .proj-badge.yt { background:rgba(255,0,0,0.1); color:rgba(255,100,100,0.65); }
+    .proj-badge.gh { background:rgba(168,192,255,0.06); color:rgba(168,192,255,0.45); }
 
     @media (max-width:600px) {
       .projects-grid { grid-template-columns:1fr; max-width:320px; }
     }
 
-    /* ─── FINALE TAGLINE ─── */
+    /* ─── FINALE ─── */
     .wp.wp-finale h2 {
       font-size:clamp(1.1rem,3vw,1.6rem);
       font-weight:300;
@@ -342,33 +499,60 @@
       letter-spacing:0.03em;
     }
     .wp.wp-finale .finale-line {
-      width:40px; height:1px; margin:20px auto 0;
+      width:50px; height:1px; margin:20px auto 0;
       background:linear-gradient(90deg,transparent,rgba(168,192,255,0.3),transparent);
     }
     .wp.wp-finale .finale-sig {
       margin-top:16px;
-      font-size:0.6rem; letter-spacing:0.25em;
+      font-size:0.55rem; letter-spacing:0.3em;
       text-transform:uppercase;
-      color:rgba(168,192,255,0.25);
+      color:rgba(168,192,255,0.2);
     }
 
     /* ─── MOBILE ─── */
     @media (max-width:768px) {
-      #progress { right:10px; gap:9px; }
-      .dot { width:6px; height:6px; }
+      body { cursor:default; }
+      #cursor-dot, #cursor-ring { display:none; }
+      #progress { right:12px; gap:10px; }
+      .dot { width:5px; height:5px; }
       .dot .tip { display:none; }
       .social-row { flex-direction:column; align-items:center; }
       .contact-form { max-width:90%; }
-      #sound-btn { width:32px; height:32px; font-size:0.75rem; top:14px; right:14px; }
+      #sound-btn { width:34px; height:34px; font-size:0.75rem; top:16px; right:16px; }
+      #brand { left:16px; top:16px; font-size:0.55rem; }
+      #status-bar { left:16px; bottom:16px; }
+      #scanlines { display:none; }
+    }
+
+    /* ─── TRANSITION OVERLAY ─── */
+    #transition-overlay {
+      position:fixed; inset:0; z-index:25;
+      pointer-events:none;
+      opacity:0;
     }
   </style>
 </head>
 <body>
 
+  <!-- CUSTOM CURSOR -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+
   <!-- LOADING SCREEN -->
   <div id="loader">
+    <div class="loader-logo">
+      <svg viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="40" stroke="rgba(168,192,255,0.15)" stroke-width="0.5"/>
+        <circle cx="50" cy="50" r="28" stroke="rgba(168,192,255,0.1)" stroke-width="0.5"/>
+        <circle cx="50" cy="50" r="16" stroke="rgba(168,192,255,0.2)" stroke-width="0.5"/>
+        <circle cx="50" cy="50" r="3" fill="rgba(168,192,255,0.5)"/>
+        <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(168,192,255,0.06)" stroke-width="0.5"/>
+        <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(168,192,255,0.06)" stroke-width="0.5"/>
+      </svg>
+    </div>
     <div class="loader-text">Initializing cosmos</div>
     <div class="loader-bar"><div class="loader-fill" id="loader-fill"></div></div>
+    <div class="loader-percent" id="loader-percent">0%</div>
   </div>
 
   <!-- TOUCH CAPTURE LAYER -->
@@ -383,7 +567,7 @@
       None of this was promised. Enjoy it while you last."
     </div>
     <div class="scroll-prompt">
-      <span>Scroll to begin</span>
+      <span>Scroll to explore</span>
       <div class="arrow"></div>
     </div>
   </div>
@@ -391,939 +575,1278 @@
   <!-- UI OVERLAY -->
   <div id="ui"></div>
 
+  <!-- BRAND -->
+  <div id="brand">NG</div>
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <div class="status-item">Section <span id="status-section">01</span> / <span id="status-total">09</span></div>
+    <div class="status-item">Depth <span id="status-depth">0.0</span></div>
+  </div>
+
+  <!-- SECTION PROGRESS -->
+  <div id="section-progress"></div>
+
   <!-- VIGNETTE -->
   <div id="vignette"></div>
 
+  <!-- SCANLINES -->
+  <div id="scanlines"></div>
+
   <!-- WARP SPEED OVERLAY -->
   <div id="warp"></div>
+
+  <!-- TRANSITION OVERLAY -->
+  <div id="transition-overlay"></div>
 
   <!-- PROGRESS -->
   <div id="progress"></div>
 
   <!-- SOUND -->
-  <button id="sound-btn" title="Toggle sound">🔇</button>
+  <button id="sound-btn" title="Toggle ambient sound">🔇</button>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>
-  (function(){
-    'use strict';
+  <!-- THREE.JS + POST-PROCESSING -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 
-    // ═══════════════════════════════════════
-    // WAYPOINT DATA
-    // ═══════════════════════════════════════
-    const WP = [
-      { label:'', title:'Nitin Ganneboina',
-        desc:'Transforming Finance through Tech. Exploring Stories through AI. I stay calm when the world panics.',
-        tags:[], pos:[0,0,0], color:'#a8c0ff', dot:'Start' },
-      { label:'What I Build', title:'Finance Transformation',
-        desc:'Leading development teams to build invoicing and reconciliation platforms for major financial institutions. My work isn\'t just code — it\'s translating complex financial needs into efficient, working software.',
-        tags:['FinTech','Enterprise','Platforms','Leadership'], pos:[14,5,-35], color:'#a8ffc0', dot:'Finance' },
-      { label:'My Superpower', title:'Calm in the Chaos',
-        desc:'Software development is rarely a straight line. When high-pressure situations hit — critical bugs, tight deadlines — I don\'t panic. My strength lies in slowing down, thinking rationally, and guiding my team through the panic zone.',
-        tags:['Resilience','Problem Solving','Leadership'], pos:[-10,13,-70], color:'#ffd6a8', dot:'Superpower' },
-      { label:'The Creative Frontier', title:'AI Storytelling',
-        desc:'Deep-diving into Generative AI, using Google Veo and Flow to produce video content. Taking raw ideas — stories, rhymes — and visualizing them on screen. Creator at heart.',
-        tags:['Generative AI','Google Veo','Video','Creativity'], pos:[12,-4,-110], color:'#ffa8f0', dot:'Creative' },
-      { label:'Expanding the Toolkit', title:'Building the Future',
-        desc:'Building AI-driven products — experimenting with everything from autonomous agents to SaaS applications. Managing product roadmaps while pushing what\'s possible.',
-        tags:['AI/ML','SaaS','Agents','Product Management'], pos:[-14,8,-150], color:'#c0a8ff', dot:'Future' },
-      { label:'Beyond Work', title:'The Explorer',
-        desc:'Currently reading "Four Agreements" by Don Miguel Ruiz and "Caraka Samhita." Passionate about cricket, badminton, history, culture, space tech, and deep conversations.',
-        tags:['Books','Cricket','History','Space Tech','Ayurveda'], pos:[8,-8,-190], color:'#a8e8ff', dot:'Explorer' },
-      { label:'My Creations', title:'Things I\'ve Made',
-        desc:'From AI-generated stories to developer tools — here\'s what I\'ve shipped into the universe.',
-        tags:[], pos:[-6,4,-225], color:'#ffcfa8', dot:'Creations', projects:true },
-      { label:'Let\'s Talk', title:'Connect With Me',
-        desc:'I thrive on deep 1-on-1 conversations. Tech: AI Agents, Space Tech, Financial Systems. Human: Cricket, History, Podcasts. No sales. Just talk.',
-        tags:[], pos:[0,2,-265], color:'#a8c0ff', dot:'Connect', connect:true },
-      { label:'', title:'',
-        desc:'',
-        tags:[], pos:[0,0,-300], color:'#a8c0ff', dot:'End', finale:true },
-    ];
-    const N = WP.length;
+  <script type="module">
+  import * as THREE from 'three';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+  import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-    // ═══════════════════════════════════════
-    // BUILD UI
-    // ═══════════════════════════════════════
-    const ui = document.getElementById('ui');
-    const progEl = document.getElementById('progress');
+  // ═══════════════════════════════════════
+  // CUSTOM POST-PROCESSING SHADERS
+  // ═══════════════════════════════════════
 
-    WP.forEach((w,i) => {
-      const d = document.createElement('div');
-      d.className = `wp wp-${i}`;
-      if (w.finale) d.classList.add('wp-finale');
-      d.id = `wp-${i}`;
-      let h = '';
-      if (w.finale) {
-        h = finaleHTML();
+  // Chromatic Aberration Shader
+  const ChromaticAberrationShader = {
+    uniforms: {
+      tDiffuse: { value: null },
+      uIntensity: { value: 0.0 },
+      uTime: { value: 0.0 }
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform float uIntensity;
+      uniform float uTime;
+      varying vec2 vUv;
+      void main() {
+        vec2 dir = vUv - 0.5;
+        float d = length(dir);
+        float aberration = uIntensity * d * 0.02;
+        float r = texture2D(tDiffuse, vUv + dir * aberration).r;
+        float g = texture2D(tDiffuse, vUv).g;
+        float b = texture2D(tDiffuse, vUv - dir * aberration).b;
+        gl_FragColor = vec4(r, g, b, 1.0);
+      }
+    `
+  };
+
+  // Film Grain + Vignette Shader
+  const FilmGrainShader = {
+    uniforms: {
+      tDiffuse: { value: null },
+      uTime: { value: 0.0 },
+      uGrainIntensity: { value: 0.04 },
+      uVignetteIntensity: { value: 0.4 },
+      uSpeed: { value: 0.0 }
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform float uTime;
+      uniform float uGrainIntensity;
+      uniform float uVignetteIntensity;
+      uniform float uSpeed;
+      varying vec2 vUv;
+
+      float random(vec2 co) {
+        return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+      }
+
+      void main() {
+        vec4 color = texture2D(tDiffuse, vUv);
+
+        // Film grain
+        float grain = random(vUv * uTime) * uGrainIntensity;
+        color.rgb += grain - uGrainIntensity * 0.5;
+
+        // Enhanced vignette
+        vec2 uv = vUv - 0.5;
+        float d = length(uv);
+        float vig = 1.0 - smoothstep(0.3, 0.9, d) * uVignetteIntensity;
+        color.rgb *= vig;
+
+        // Speed-based color grading — shift toward blue/purple at high speed
+        float speedGrade = uSpeed * 0.15;
+        color.r -= speedGrade * 0.5;
+        color.b += speedGrade * 0.3;
+
+        gl_FragColor = color;
+      }
+    `
+  };
+
+  // ═══════════════════════════════════════
+  // WAYPOINT DATA
+  // ═══════════════════════════════════════
+  const WP = [
+    { label:'', title:'Nitin Ganneboina',
+      desc:'Transforming Finance through Tech. Exploring Stories through AI. I stay calm when the world panics.',
+      tags:[], pos:[0,0,0], color:'#a8c0ff', dot:'Start' },
+    { label:'What I Build', title:'Finance Transformation',
+      desc:'Leading development teams to build invoicing and reconciliation platforms for major financial institutions. My work isn\'t just code — it\'s translating complex financial needs into efficient, working software.',
+      tags:['FinTech','Enterprise','Platforms','Leadership'], pos:[14,5,-35], color:'#a8ffc0', dot:'Finance' },
+    { label:'My Superpower', title:'Calm in the Chaos',
+      desc:'Software development is rarely a straight line. When high-pressure situations hit — critical bugs, tight deadlines — I don\'t panic. My strength lies in slowing down, thinking rationally, and guiding my team through the panic zone.',
+      tags:['Resilience','Problem Solving','Leadership'], pos:[-10,13,-70], color:'#ffd6a8', dot:'Superpower' },
+    { label:'The Creative Frontier', title:'AI Storytelling',
+      desc:'Deep-diving into Generative AI, using Google Veo and Flow to produce video content. Taking raw ideas — stories, rhymes — and visualizing them on screen. Creator at heart.',
+      tags:['Generative AI','Google Veo','Video','Creativity'], pos:[12,-4,-110], color:'#ffa8f0', dot:'Creative' },
+    { label:'Expanding the Toolkit', title:'Building the Future',
+      desc:'Building AI-driven products — experimenting with everything from autonomous agents to SaaS applications. Managing product roadmaps while pushing what\'s possible.',
+      tags:['AI/ML','SaaS','Agents','Product Management'], pos:[-14,8,-150], color:'#c0a8ff', dot:'Future' },
+    { label:'Beyond Work', title:'The Explorer',
+      desc:'Currently reading "Four Agreements" by Don Miguel Ruiz and "Caraka Samhita." Passionate about cricket, badminton, history, culture, space tech, and deep conversations.',
+      tags:['Books','Cricket','History','Space Tech','Ayurveda'], pos:[8,-8,-190], color:'#a8e8ff', dot:'Explorer' },
+    { label:'My Creations', title:'Things I\'ve Made',
+      desc:'From AI-generated stories to developer tools — here\'s what I\'ve shipped into the universe.',
+      tags:[], pos:[-6,4,-225], color:'#ffcfa8', dot:'Creations', projects:true },
+    { label:'Let\'s Talk', title:'Connect With Me',
+      desc:'I thrive on deep 1-on-1 conversations. Tech: AI Agents, Space Tech, Financial Systems. Human: Cricket, History, Podcasts. No sales. Just talk.',
+      tags:[], pos:[0,2,-265], color:'#a8c0ff', dot:'Connect', connect:true },
+    { label:'', title:'',
+      desc:'',
+      tags:[], pos:[0,0,-300], color:'#a8c0ff', dot:'End', finale:true },
+  ];
+  const N = WP.length;
+
+  // ═══════════════════════════════════════
+  // CUSTOM CURSOR
+  // ═══════════════════════════════════════
+  const cursorDot = document.getElementById('cursor-dot');
+  const cursorRing = document.getElementById('cursor-ring');
+  let cursorX = window.innerWidth / 2, cursorY = window.innerHeight / 2;
+  let cursorDotX = cursorX, cursorDotY = cursorY;
+  let cursorRingX = cursorX, cursorRingY = cursorY;
+
+  document.addEventListener('mousemove', (e) => {
+    cursorX = e.clientX;
+    cursorY = e.clientY;
+  });
+
+  // Hover detection for interactive elements
+  document.addEventListener('mouseover', (e) => {
+    if (e.target.closest('a, button, .dot, .proj, input, textarea')) {
+      document.body.classList.add('cursor-hover');
+    }
+  });
+  document.addEventListener('mouseout', (e) => {
+    if (e.target.closest('a, button, .dot, .proj, input, textarea')) {
+      document.body.classList.remove('cursor-hover');
+    }
+  });
+
+  function updateCursor() {
+    cursorDotX += (cursorX - cursorDotX) * 0.25;
+    cursorDotY += (cursorY - cursorDotY) * 0.25;
+    cursorRingX += (cursorX - cursorRingX) * 0.12;
+    cursorRingY += (cursorY - cursorRingY) * 0.12;
+    cursorDot.style.left = cursorDotX + 'px';
+    cursorDot.style.top = cursorDotY + 'px';
+    cursorRing.style.left = cursorRingX + 'px';
+    cursorRing.style.top = cursorRingY + 'px';
+  }
+
+  // ═══════════════════════════════════════
+  // BUILD UI
+  // ═══════════════════════════════════════
+  const ui = document.getElementById('ui');
+  const progEl = document.getElementById('progress');
+
+  WP.forEach((w,i) => {
+    const d = document.createElement('div');
+    d.className = `wp wp-${i}`;
+    if (w.finale) d.classList.add('wp-finale');
+    d.id = `wp-${i}`;
+    let h = '';
+    if (w.finale) {
+      h = finaleHTML();
+    } else {
+      if (w.label) h += `<div class="label">${w.label}</div>`;
+      h += `<h2>${w.title}</h2><p>${w.desc}</p>`;
+      if (w.tags.length) h += `<div class="tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+      if (w.projects) h += projectsHTML();
+      if (w.connect) h += connectHTML();
+    }
+    d.innerHTML = h;
+    ui.appendChild(d);
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.innerHTML = `<span class="tip">${w.dot}</span>`;
+    dot.addEventListener('click', () => { targetWP = i; tgt = wpT[i]; });
+    progEl.appendChild(dot);
+  });
+
+  // Project card mouse tracking for glow effect
+  document.querySelectorAll('.proj').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mx', x + '%');
+      card.style.setProperty('--my', y + '%');
+    });
+  });
+
+  document.getElementById('status-total').textContent = String(N).padStart(2,'0');
+
+  function projectsHTML() {
+    return `
+    <div class="projects-grid">
+      <a href="https://youtu.be/PX_6s-CIsIg" target="_blank" rel="noopener" class="proj" style="--accent:#ff6666">
+        <div class="proj-icon">🐴</div>
+        <div class="proj-info">
+          <h4>Chal Chal Gurram</h4>
+          <p>AI-generated Telugu action rhyme for kids. 170K+ views. 3D animation with Google Veo.</p>
+          <span class="proj-badge yt">▶ YouTube · 170K views</span>
+        </div>
+      </a>
+      <a href="https://youtu.be/tRv-1iePJ8c" target="_blank" rel="noopener" class="proj" style="--accent:#ff6666">
+        <div class="proj-icon">🦁</div>
+        <div class="proj-info">
+          <h4>Simham Eluka Katha</h4>
+          <p>Lion & Mouse — classic Telugu moral story brought to life with AI 3D animation.</p>
+          <span class="proj-badge yt">▶ YouTube · 15K views</span>
+        </div>
+      </a>
+      <a href="https://github.com/nitinms-ftw/TerminalPulse" target="_blank" rel="noopener" class="proj" style="--accent:#a8ffc0">
+        <div class="proj-icon">⚡</div>
+        <div class="proj-info">
+          <h4>TerminalPulse</h4>
+          <p>Track your terminal time, AI tool usage, streaks & achievements. Gamified dev productivity.</p>
+          <span class="proj-badge gh">◆ GitHub · Electron + JS</span>
+        </div>
+      </a>
+      <a href="https://github.com/nitinms-ftw/RnaDrawing" target="_blank" rel="noopener" class="proj" style="--accent:#c0a8ff">
+        <div class="proj-icon">🧬</div>
+        <div class="proj-info">
+          <h4>RNA Drawing</h4>
+          <p>Visualization tool for RNA secondary structures. An early exploration in bioinformatics.</p>
+          <span class="proj-badge gh">◆ GitHub · Bioinformatics</span>
+        </div>
+      </a>
+    </div>`;
+  }
+
+  function connectHTML() {
+    return `
+    <div class="social-row">
+      <a href="https://github.com/nitinms-ftw" target="_blank" rel="noopener" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>GitHub</a>
+      <a href="https://www.linkedin.com/in/nitin-g-51778a8b" target="_blank" rel="noopener" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>
+      <a href="https://x.com/GanneboinaNitin" target="_blank" rel="noopener" class="social-link">
+        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X</a>
+    </div>
+    <form class="contact-form" id="contact-form" onsubmit="return handleSubmit(event)">
+      <input type="hidden" name="access_key" value="" id="form-key"/>
+      <input type="text" name="_gotcha" id="_hp" style="display:none!important" tabindex="-1" autocomplete="off"/>
+      <div class="fr"><label>Your Name</label><input type="text" id="c-name" placeholder="Jane Doe" required/></div>
+      <div class="fr"><label>Your Email</label><input type="email" id="c-email" placeholder="jane@example.com" required/></div>
+      <div class="fr"><label>Message</label><textarea id="c-msg" placeholder="Let's talk about..."></textarea></div>
+      <button type="submit" class="send-btn" id="submit-btn">Send Message ✉</button>
+      <div class="form-status" id="form-status"></div>
+    </form>`;
+  }
+
+  function finaleHTML() {
+    return `
+      <h2>The universe is endless, and so is my journey.<br>Will keep building new horizons.</h2>
+      <div class="finale-line"></div>
+      <div class="finale-sig">— Nitin Ganneboina</div>
+    `;
+  }
+
+  // ═══════════════════════════════════════
+  // THREE.JS — HIGH-END SETUP
+  // ═══════════════════════════════════════
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x030108, 0.0018);
+  const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: 'high-performance',
+    alpha: false,
+    stencil: false
+  });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x030108);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  document.body.prepend(renderer.domElement);
+
+  // ═══════════════════════════════════════
+  // POST-PROCESSING PIPELINE
+  // ═══════════════════════════════════════
+  const composer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+
+  // Unreal Bloom — the key to that premium glow
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(innerWidth, innerHeight),
+    0.8,    // strength
+    0.6,    // radius
+    0.25    // threshold
+  );
+  composer.addPass(bloomPass);
+
+  // Chromatic Aberration — reacts to speed
+  const chromaPass = new ShaderPass(ChromaticAberrationShader);
+  composer.addPass(chromaPass);
+
+  // Film Grain + Enhanced Vignette
+  const filmPass = new ShaderPass(FilmGrainShader);
+  composer.addPass(filmPass);
+
+  // ═══════════════════════════════════════
+  // CAMERA PATH
+  // ═══════════════════════════════════════
+  const pts = WP.map(w => new THREE.Vector3(...w.pos));
+  const entry = pts[0].clone().add(new THREE.Vector3(0,0,15));
+  const exit = pts[N-1].clone().add(new THREE.Vector3(0,0,-15));
+  const spline = new THREE.CatmullRomCurve3([entry,...pts,exit], false, 'catmullrom', 0.3);
+  const wpT = WP.map((_,i) => (i+1)/(pts.length+1));
+
+  // ═══════════════════════════════════════
+  // MOUSE PARALLAX
+  // ═══════════════════════════════════════
+  let mouseX = 0, mouseY = 0;
+  let smoothMouseX = 0, smoothMouseY = 0;
+  let mouseNormX = 0, mouseNormY = 0;
+  document.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / innerHeight - 0.5) * 2;
+    mouseNormX = e.clientX / innerWidth;
+    mouseNormY = e.clientY / innerHeight;
+  });
+
+  // ═══════════════════════════════════════
+  // STARS — ADVANCED SHADER PARTICLES
+  // ═══════════════════════════════════════
+  function mkStars(count, spread, sRange, bright) {
+    const g = new THREE.BufferGeometry();
+    const p = new Float32Array(count*3), s = new Float32Array(count), sd = new Float32Array(count);
+    const colors = new Float32Array(count*3);
+    for (let i=0; i<count; i++) {
+      const t = Math.random();
+      const pp = spline.getPointAt(t);
+      p[i*3]=pp.x+(Math.random()-.5)*spread;
+      p[i*3+1]=pp.y+(Math.random()-.5)*spread;
+      p[i*3+2]=pp.z+(Math.random()-.5)*spread;
+      s[i]=sRange[0]+Math.random()*(sRange[1]-sRange[0]);
+      sd[i]=Math.random()*6.28;
+      const temp = Math.random();
+      if (temp < 0.25) {
+        colors[i*3]=0.75; colors[i*3+1]=0.85; colors[i*3+2]=1.0;
+      } else if (temp < 0.5) {
+        colors[i*3]=1.0; colors[i*3+1]=0.95; colors[i*3+2]=0.9;
+      } else if (temp < 0.75) {
+        colors[i*3]=0.6; colors[i*3+1]=0.7; colors[i*3+2]=1.0;
+      } else if (temp < 0.92) {
+        colors[i*3]=1.0; colors[i*3+1]=0.8; colors[i*3+2]=0.6;
       } else {
-        if (w.label) h += `<div class="label">${w.label}</div>`;
-        h += `<h2>${w.title}</h2><p>${w.desc}</p>`;
-        if (w.tags.length) h += `<div class="tags">${w.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
-        if (w.projects) h += projectsHTML();
-        if (w.connect) h += connectHTML();
+        // Rare bright colored stars
+        const hue = Math.random();
+        if (hue < 0.33) { colors[i*3]=1.0; colors[i*3+1]=0.4; colors[i*3+2]=0.4; }
+        else if (hue < 0.66) { colors[i*3]=0.4; colors[i*3+1]=1.0; colors[i*3+2]=0.6; }
+        else { colors[i*3]=0.6; colors[i*3+1]=0.4; colors[i*3+2]=1.0; }
+        s[i] *= 1.5;
       }
-      d.innerHTML = h;
-      ui.appendChild(d);
-      const dot = document.createElement('div');
-      dot.className = 'dot';
-      dot.innerHTML = `<span class="tip">${w.dot}</span>`;
-      dot.addEventListener('click', () => { targetWP = i; tgt = wpT[i]; });
-      progEl.appendChild(dot);
-    });
-
-    function projectsHTML() {
-      return `
-      <div class="projects-grid">
-        <a href="https://youtu.be/PX_6s-CIsIg" target="_blank" rel="noopener" class="proj" style="--accent:#ff6666">
-          <div class="proj-icon">🐴</div>
-          <div class="proj-info">
-            <h4>Chal Chal Gurram</h4>
-            <p>AI-generated Telugu action rhyme for kids. 170K+ views. 3D animation with Google Veo.</p>
-            <span class="proj-badge yt">▶ YouTube · 170K views</span>
-          </div>
-        </a>
-        <a href="https://youtu.be/tRv-1iePJ8c" target="_blank" rel="noopener" class="proj" style="--accent:#ff6666">
-          <div class="proj-icon">🦁</div>
-          <div class="proj-info">
-            <h4>Simham Eluka Katha</h4>
-            <p>Lion & Mouse — classic Telugu moral story brought to life with AI 3D animation.</p>
-            <span class="proj-badge yt">▶ YouTube · 15K views</span>
-          </div>
-        </a>
-        <a href="https://github.com/nitinms-ftw/TerminalPulse" target="_blank" rel="noopener" class="proj" style="--accent:#a8ffc0">
-          <div class="proj-icon">⚡</div>
-          <div class="proj-info">
-            <h4>TerminalPulse</h4>
-            <p>Track your terminal time, AI tool usage, streaks & achievements. Gamified dev productivity.</p>
-            <span class="proj-badge gh">◆ GitHub · Electron + JS</span>
-          </div>
-        </a>
-        <a href="https://github.com/nitinms-ftw/RnaDrawing" target="_blank" rel="noopener" class="proj" style="--accent:#c0a8ff">
-          <div class="proj-icon">🧬</div>
-          <div class="proj-info">
-            <h4>RNA Drawing</h4>
-            <p>Visualization tool for RNA secondary structures. An early exploration in bioinformatics.</p>
-            <span class="proj-badge gh">◆ GitHub · Bioinformatics</span>
-          </div>
-        </a>
-      </div>`;
     }
-
-    function connectHTML() {
-      return `
-      <div class="social-row">
-        <a href="https://github.com/nitinms-ftw" target="_blank" rel="noopener" class="social-link">
-          <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>GitHub</a>
-        <a href="https://www.linkedin.com/in/nitin-g-51778a8b" target="_blank" rel="noopener" class="social-link">
-          <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>
-        <a href="https://x.com/GanneboinaNitin" target="_blank" rel="noopener" class="social-link">
-          <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>X</a>
-      </div>
-      <form class="contact-form" id="contact-form" onsubmit="return handleSubmit(event)">
-        <input type="hidden" name="access_key" value="" id="form-key"/>
-        <input type="text" name="_gotcha" id="_hp" style="display:none!important" tabindex="-1" autocomplete="off"/>
-        <div class="fr"><label>Your Name</label><input type="text" id="c-name" placeholder="Jane Doe" required/></div>
-        <div class="fr"><label>Your Email</label><input type="email" id="c-email" placeholder="jane@example.com" required/></div>
-        <div class="fr"><label>Message</label><textarea id="c-msg" placeholder="Let's talk about..."></textarea></div>
-        <button type="submit" class="send-btn" id="submit-btn">Send Message ✉</button>
-        <div class="form-status" id="form-status"></div>
-      </form>`;
-    }
-
-    function finaleHTML() {
-      return `
-        <h2>The universe is endless, and so is my journey.<br>Will keep building new horizons.</h2>
-        <div class="finale-line"></div>
-        <div class="finale-sig">— Nitin Ganneboina</div>
-      `;
-    }
-
-    // ═══════════════════════════════════════
-    // THREE.JS — HIGH RESOLUTION SETUP
-    // ═══════════════════════════════════════
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x030108, 0.002);
-    const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 800);
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      powerPreference: 'high-performance',
-      alpha: false,
-      stencil: false
-    });
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2.5));
-    renderer.setClearColor(0x030108);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    document.body.prepend(renderer.domElement);
-
-    // Post-processing is handled via additive blending on stars
-    // + CSS filter for subtle bloom glow on the canvas
-
-    // ═══════════════════════════════════════
-    // CAMERA PATH
-    // ═══════════════════════════════════════
-    const pts = WP.map(w => new THREE.Vector3(...w.pos));
-    const entry = pts[0].clone().add(new THREE.Vector3(0,0,15));
-    const exit = pts[N-1].clone().add(new THREE.Vector3(0,0,-15));
-    const spline = new THREE.CatmullRomCurve3([entry,...pts,exit], false, 'catmullrom', 0.3);
-    const wpT = WP.map((_,i) => (i+1)/(pts.length+1));
-
-    // ═══════════════════════════════════════
-    // MOUSE PARALLAX
-    // ═══════════════════════════════════════
-    let mouseX = 0, mouseY = 0;
-    let smoothMouseX = 0, smoothMouseY = 0;
-    document.addEventListener('mousemove', (e) => {
-      mouseX = (e.clientX / innerWidth - 0.5) * 2;
-      mouseY = (e.clientY / innerHeight - 0.5) * 2;
-    });
-
-    // ═══════════════════════════════════════
-    // STARS — HD with proper glow
-    // ═══════════════════════════════════════
-    function mkStars(count, spread, sRange, bright) {
-      const g = new THREE.BufferGeometry();
-      const p = new Float32Array(count*3), s = new Float32Array(count), sd = new Float32Array(count);
-      const colors = new Float32Array(count*3);
-      for (let i=0; i<count; i++) {
-        const t = Math.random();
-        const pp = spline.getPointAt(t);
-        p[i*3]=pp.x+(Math.random()-.5)*spread;
-        p[i*3+1]=pp.y+(Math.random()-.5)*spread;
-        p[i*3+2]=pp.z+(Math.random()-.5)*spread;
-        s[i]=sRange[0]+Math.random()*(sRange[1]-sRange[0]);
-        sd[i]=Math.random()*6.28;
-        // Subtle color variation
-        const temp = Math.random();
-        if (temp < 0.3) {
-          colors[i*3]=0.85; colors[i*3+1]=0.9; colors[i*3+2]=1.0; // blue-white
-        } else if (temp < 0.6) {
-          colors[i*3]=1.0; colors[i*3+1]=0.98; colors[i*3+2]=0.95; // warm white
-        } else if (temp < 0.85) {
-          colors[i*3]=0.7; colors[i*3+1]=0.8; colors[i*3+2]=1.0; // blue
-        } else {
-          colors[i*3]=1.0; colors[i*3+1]=0.85; colors[i*3+2]=0.7; // warm
-        }
-      }
-      g.setAttribute('position', new THREE.Float32BufferAttribute(p,3));
-      g.setAttribute('size', new THREE.Float32BufferAttribute(s,1));
-      g.setAttribute('seed', new THREE.Float32BufferAttribute(sd,1));
-      g.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
-      const m = new THREE.ShaderMaterial({
-        uniforms:{ uTime:{value:0}, uBright:{value:bright}, uSpeed:{value:0} },
-        vertexShader:`
-          attribute float size;
-          attribute float seed;
-          attribute vec3 color;
-          uniform float uTime, uSpeed;
-          varying float vA;
-          varying vec3 vColor;
-          void main(){
-            vColor = color;
-            vec4 mv = modelViewMatrix * vec4(position,1.0);
-            float stretch = 1.0 + uSpeed * 6.0;
-            gl_PointSize = size * stretch * (140.0 / -mv.z);
-            gl_Position = projectionMatrix * mv;
-            vA = 0.4 + 0.6*abs(sin(uTime*0.3+seed));
-          }`,
-        fragmentShader:`
-          uniform float uBright, uSpeed;
-          varying float vA;
-          varying vec3 vColor;
-          void main(){
-            vec2 uv = gl_PointCoord - 0.5;
-            float d = length(vec2(uv.x, uv.y * (1.0 + uSpeed*4.0))) * 2.0;
-            if(d>1.0) discard;
-            // Soft Gaussian-like falloff
-            float a = exp(-d*d*3.0) * vA * uBright;
-            // Glow halo
-            float halo = exp(-d*d*1.0) * 0.15 * uBright;
-            gl_FragColor = vec4(vColor, a + halo + uSpeed*0.15);
-          }`,
-        transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-      });
-      return { points:new THREE.Points(g,m), mat:m };
-    }
-
-    const near = mkStars(1500, 55, [0.3,2.5], 0.8);
-    const far = mkStars(3000, 200, [0.2,1.4], 0.4);
-    const dust = mkStars(800, 120, [0.1,0.5], 0.15);
-    scene.add(near.points); scene.add(far.points); scene.add(dust.points);
-
-    // ═══════════════════════════════════════
-    // WAYPOINT ORBS — HD glow
-    // ═══════════════════════════════════════
-    function mkGlow(color, size) {
-      const c=document.createElement('canvas');
-      c.width=size||128; c.height=size||128;
-      const x=c.getContext('2d');
-      const half = c.width/2;
-      const g=x.createRadialGradient(half,half,0,half,half,half);
-      g.addColorStop(0,color); g.addColorStop(0.15,color+'dd');
-      g.addColorStop(0.3,color+'88'); g.addColorStop(0.5,color+'33');
-      g.addColorStop(0.7,color+'11'); g.addColorStop(1,'transparent');
-      x.fillStyle=g; x.fillRect(0,0,c.width,c.height);
-      const tex = new THREE.CanvasTexture(c);
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    const orbs = [];
-    WP.forEach((w,i) => {
-      const sz = i===0 ? 0.45 : 0.25;
-      const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(sz,64,64),
-        new THREE.MeshBasicMaterial({ color:new THREE.Color(w.color) })
-      );
-      mesh.position.set(...w.pos); scene.add(mesh);
-      // Inner glow
-      const gs = i===0 ? 5 : 3;
-      const sp = new THREE.Sprite(new THREE.SpriteMaterial({
-        map:mkGlow(w.color, 128), transparent:true, opacity:0.65,
-        depthWrite:false, blending:THREE.AdditiveBlending
-      }));
-      sp.scale.set(gs,gs,1); sp.position.set(...w.pos); scene.add(sp);
-      // Outer halo
-      const gs2 = gs * 2.5;
-      const sp2 = new THREE.Sprite(new THREE.SpriteMaterial({
-        map:mkGlow(w.color, 256), transparent:true, opacity:0.12,
-        depthWrite:false, blending:THREE.AdditiveBlending
-      }));
-      sp2.scale.set(gs2,gs2,1); sp2.position.set(...w.pos); scene.add(sp2);
-      orbs.push({mesh,sp,sp2,gs,gs2});
-    });
-
-    // Path line
-    const lp=[]; for(let i=0;i<=400;i++){const p=spline.getPointAt(i/400);lp.push(p.x,p.y,p.z);}
-    const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));
-    scene.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color:0x334477,transparent:true,opacity:0.06})));
-
-    // Nebulae — softer, larger
-    WP.forEach((w,i) => {
-      if(i===0||i===N-1) return;
-      for(let j=0;j<2;j++){
-        const nm=new THREE.SpriteMaterial({
-          map:mkGlow(w.color, 256), transparent:true, opacity:0.025,
-          depthWrite:false, blending:THREE.AdditiveBlending
-        });
-        const ns=new THREE.Sprite(nm); ns.scale.set(40+Math.random()*15,40+Math.random()*15,1);
-        ns.position.set(
-          w.pos[0]+(Math.random()-.5)*8,
-          w.pos[1]+(Math.random()-.5)*8,
-          w.pos[2]-5+Math.random()*10
-        );
-        scene.add(ns);
-      }
-    });
-
-    // ═══════════════════════════════════════
-    // PARTICLE TRAIL
-    // ═══════════════════════════════════════
-    const TRAIL_N = 120;
-    const trailGeo = new THREE.BufferGeometry();
-    const trailPos = new Float32Array(TRAIL_N*3);
-    const trailAlpha = new Float32Array(TRAIL_N);
-    for(let i=0;i<TRAIL_N;i++) { trailAlpha[i]=1-i/TRAIL_N; }
-    trailGeo.setAttribute('position', new THREE.Float32BufferAttribute(trailPos,3));
-    trailGeo.setAttribute('alpha', new THREE.Float32BufferAttribute(trailAlpha,1));
-    const trailMat = new THREE.ShaderMaterial({
-      uniforms: { uSpeed:{value:0} },
+    g.setAttribute('position', new THREE.Float32BufferAttribute(p,3));
+    g.setAttribute('size', new THREE.Float32BufferAttribute(s,1));
+    g.setAttribute('seed', new THREE.Float32BufferAttribute(sd,1));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
+    const m = new THREE.ShaderMaterial({
+      uniforms:{
+        uTime:{value:0}, uBright:{value:bright}, uSpeed:{value:0},
+        uMouse:{value: new THREE.Vector2(0,0)},
+        uResolution:{value: new THREE.Vector2(innerWidth, innerHeight)}
+      },
       vertexShader:`
-        attribute float alpha;
+        attribute float size;
+        attribute float seed;
+        attribute vec3 color;
+        uniform float uTime, uSpeed;
         varying float vA;
-        uniform float uSpeed;
+        varying vec3 vColor;
+        varying float vDist;
         void main(){
-          vA = alpha * uSpeed;
+          vColor = color;
           vec4 mv = modelViewMatrix * vec4(position,1.0);
-          gl_PointSize = (2.5 + uSpeed*4.0) * (100.0/-mv.z);
+          vDist = -mv.z;
+          // Stretch stars during warp
+          float stretch = 1.0 + uSpeed * 8.0;
+          gl_PointSize = size * stretch * (160.0 / -mv.z);
           gl_Position = projectionMatrix * mv;
+          // Twinkle with multiple frequencies for organic feel
+          float twinkle1 = sin(uTime*0.4+seed) * 0.5 + 0.5;
+          float twinkle2 = sin(uTime*1.1+seed*2.3) * 0.5 + 0.5;
+          float twinkle3 = sin(uTime*0.15+seed*0.7) * 0.5 + 0.5;
+          vA = 0.3 + 0.7 * (twinkle1 * 0.5 + twinkle2 * 0.3 + twinkle3 * 0.2);
         }`,
       fragmentShader:`
+        uniform float uBright, uSpeed;
         varying float vA;
+        varying vec3 vColor;
+        varying float vDist;
         void main(){
-          float d=length(gl_PointCoord-0.5)*2.0;
-          if(d>1.0) discard;
-          float a = exp(-d*d*2.5) * vA * 0.35;
-          gl_FragColor = vec4(0.65,0.75,1.0, a);
+          vec2 uv = gl_PointCoord - 0.5;
+          // Stretch UV during warp for streak effect
+          float d = length(vec2(uv.x, uv.y * (1.0 + uSpeed*6.0))) * 2.0;
+          if(d > 1.0) discard;
+
+          // Multi-layer glow: sharp core + soft halo + outer glow
+          float core = exp(-d*d*8.0);
+          float halo = exp(-d*d*2.0) * 0.4;
+          float outer = exp(-d*d*0.8) * 0.1;
+          float a = (core + halo + outer) * vA * uBright;
+
+          // Warp brightening
+          a += uSpeed * 0.2;
+
+          // Color shift at edges — slight blue tint on outer glow
+          vec3 col = mix(vColor, vec3(0.6, 0.7, 1.0), outer * 0.5);
+
+          gl_FragColor = vec4(col, a);
         }`,
       transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
     });
-    const trailPoints = new THREE.Points(trailGeo, trailMat);
-    scene.add(trailPoints);
-    const trailHistory = [];
-    for(let i=0;i<TRAIL_N;i++) trailHistory.push(new THREE.Vector3());
+    return { points:new THREE.Points(g,m), mat:m };
+  }
 
-    // ═══════════════════════════════════════
-    // AUDIO — SWEET & SMOOTH
-    // ═══════════════════════════════════════
-    let audioCtx, masterGain, soundOn = false;
-    let ambientGainNode, padGainNode, whooshGainNode, chimeGainNode;
-    let padOscs = [], ambientOsc, lastChimeWP = -1;
+  const near = mkStars(2000, 55, [0.3,3.0], 0.9);
+  const far = mkStars(4000, 250, [0.2,1.6], 0.35);
+  const dust = mkStars(1200, 150, [0.08,0.4], 0.12);
+  scene.add(near.points); scene.add(far.points); scene.add(dust.points);
 
-    // Musical notes (Hz) for sweet chimes
-    const CHIME_NOTES = [
-      392.00,  // G4
-      523.25,  // C5
-      659.25,  // E5
-      783.99,  // G5
-      1046.50, // C6
-      880.00,  // A5
-      587.33,  // D5
-      698.46,  // F5
+  // ═══════════════════════════════════════
+  // INTERACTIVE NEBULA SYSTEM — GPU Particles
+  // ═══════════════════════════════════════
+  function createNebula(position, color, size) {
+    const nebulaGeo = new THREE.BufferGeometry();
+    const count = 200;
+    const positions = new Float32Array(count * 3);
+    const seeds = new Float32Array(count);
+    const sizes = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = Math.random() * size;
+      positions[i*3] = position.x + r * Math.sin(phi) * Math.cos(theta);
+      positions[i*3+1] = position.y + r * Math.sin(phi) * Math.sin(theta);
+      positions[i*3+2] = position.z + r * Math.cos(phi);
+      seeds[i] = Math.random() * 6.28;
+      sizes[i] = 2 + Math.random() * 6;
+    }
+
+    nebulaGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    nebulaGeo.setAttribute('seed', new THREE.Float32BufferAttribute(seeds, 1));
+    nebulaGeo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+    const col = new THREE.Color(color);
+    const nebulaMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Vector3(col.r, col.g, col.b) },
+        uCamPos: { value: new THREE.Vector3() },
+        uProximity: { value: 0 }
+      },
+      vertexShader: `
+        attribute float seed;
+        attribute float size;
+        uniform float uTime;
+        uniform float uProximity;
+        varying float vAlpha;
+        varying float vSeed;
+        void main() {
+          vSeed = seed;
+          vec3 pos = position;
+          // Gentle drift
+          pos.x += sin(uTime * 0.1 + seed * 3.0) * 1.5;
+          pos.y += cos(uTime * 0.08 + seed * 2.0) * 1.2;
+          pos.z += sin(uTime * 0.06 + seed * 4.0) * 0.8;
+
+          vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+          float proximity = smoothstep(60.0, 10.0, -mv.z);
+          vAlpha = (0.03 + proximity * 0.12 + uProximity * 0.08)
+                   * (0.5 + 0.5 * sin(uTime * 0.2 + seed));
+          gl_PointSize = size * (1.0 + proximity * 2.0) * (200.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform float uTime;
+        varying float vAlpha;
+        varying float vSeed;
+        void main() {
+          vec2 uv = gl_PointCoord - 0.5;
+          float d = length(uv) * 2.0;
+          if (d > 1.0) discard;
+          float a = exp(-d*d*1.5) * vAlpha;
+          // Color breathing
+          vec3 col = uColor * (0.8 + 0.2 * sin(uTime * 0.3 + vSeed));
+          gl_FragColor = vec4(col, a);
+        }
+      `,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+    });
+
+    const nebula = new THREE.Points(nebulaGeo, nebulaMat);
+    scene.add(nebula);
+    return { mesh: nebula, mat: nebulaMat };
+  }
+
+  const nebulae = [];
+  WP.forEach((w, i) => {
+    if (i === 0 || i === N-1) return;
+    nebulae.push(createNebula(
+      new THREE.Vector3(...w.pos),
+      w.color,
+      12 + Math.random() * 8
+    ));
+  });
+
+  // ═══════════════════════════════════════
+  // WAYPOINT ORBS — Volumetric Glow
+  // ═══════════════════════════════════════
+  function mkGlow(color, size) {
+    const c=document.createElement('canvas');
+    c.width=size||256; c.height=size||256;
+    const x=c.getContext('2d');
+    const half = c.width/2;
+    const g=x.createRadialGradient(half,half,0,half,half,half);
+    g.addColorStop(0,color); g.addColorStop(0.1,color+'ee');
+    g.addColorStop(0.25,color+'88'); g.addColorStop(0.45,color+'33');
+    g.addColorStop(0.65,color+'11'); g.addColorStop(1,'transparent');
+    x.fillStyle=g; x.fillRect(0,0,c.width,c.height);
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  const orbs = [];
+  WP.forEach((w,i) => {
+    const sz = i===0 ? 0.5 : 0.28;
+    // Core sphere with emissive-like material
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(sz,64,64),
+      new THREE.MeshBasicMaterial({ color:new THREE.Color(w.color) })
+    );
+    mesh.position.set(...w.pos); scene.add(mesh);
+
+    // Inner glow
+    const gs = i===0 ? 6 : 3.5;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:mkGlow(w.color, 256), transparent:true, opacity:0.6,
+      depthWrite:false, blending:THREE.AdditiveBlending
+    }));
+    sp.scale.set(gs,gs,1); sp.position.set(...w.pos); scene.add(sp);
+
+    // Outer halo
+    const gs2 = gs * 3;
+    const sp2 = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:mkGlow(w.color, 256), transparent:true, opacity:0.08,
+      depthWrite:false, blending:THREE.AdditiveBlending
+    }));
+    sp2.scale.set(gs2,gs2,1); sp2.position.set(...w.pos); scene.add(sp2);
+
+    // Orbiting ring particles
+    const ringGeo = new THREE.BufferGeometry();
+    const ringCount = 30;
+    const ringPos = new Float32Array(ringCount * 3);
+    const ringSeed = new Float32Array(ringCount);
+    const ringRadius = gs * 0.6;
+    for (let j = 0; j < ringCount; j++) {
+      const angle = (j / ringCount) * Math.PI * 2;
+      ringPos[j*3] = w.pos[0] + Math.cos(angle) * ringRadius;
+      ringPos[j*3+1] = w.pos[1] + Math.sin(angle) * ringRadius * 0.3;
+      ringPos[j*3+2] = w.pos[2] + Math.sin(angle) * ringRadius;
+      ringSeed[j] = Math.random() * 6.28;
+    }
+    ringGeo.setAttribute('position', new THREE.Float32BufferAttribute(ringPos, 3));
+    ringGeo.setAttribute('seed', new THREE.Float32BufferAttribute(ringSeed, 1));
+    const ringMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color(w.color) },
+        uCenter: { value: new THREE.Vector3(...w.pos) },
+        uRadius: { value: ringRadius }
+      },
+      vertexShader: `
+        attribute float seed;
+        uniform float uTime;
+        uniform vec3 uCenter;
+        uniform float uRadius;
+        varying float vA;
+        void main() {
+          float angle = seed + uTime * 0.3;
+          vec3 pos = uCenter + vec3(
+            cos(angle) * uRadius,
+            sin(angle * 0.7) * uRadius * 0.3,
+            sin(angle) * uRadius
+          );
+          vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+          gl_PointSize = 1.5 * (100.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
+          vA = 0.3 + 0.3 * sin(uTime + seed * 3.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        varying float vA;
+        void main() {
+          float d = length(gl_PointCoord - 0.5) * 2.0;
+          if (d > 1.0) discard;
+          float a = exp(-d*d*3.0) * vA;
+          gl_FragColor = vec4(uColor, a);
+        }
+      `,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+    });
+    const ringPoints = new THREE.Points(ringGeo, ringMat);
+    scene.add(ringPoints);
+
+    orbs.push({mesh, sp, sp2, gs, gs2, ringMat});
+  });
+
+  // Path line (subtle)
+  const lp=[]; for(let i=0;i<=500;i++){const p=spline.getPointAt(i/500);lp.push(p.x,p.y,p.z);}
+  const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));
+  scene.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color:0x334477,transparent:true,opacity:0.04})));
+
+  // ═══════════════════════════════════════
+  // FLOATING GEOMETRY — Interactive 3D Elements
+  // ═══════════════════════════════════════
+  const floatingGeo = [];
+  const geoTypes = [
+    new THREE.IcosahedronGeometry(0.8, 1),
+    new THREE.OctahedronGeometry(0.6, 0),
+    new THREE.TetrahedronGeometry(0.5, 0),
+    new THREE.TorusGeometry(0.5, 0.15, 8, 32),
+    new THREE.DodecahedronGeometry(0.4, 0),
+  ];
+
+  WP.forEach((w, i) => {
+    if (i === 0 || i === N-1) return;
+    const geo = geoTypes[i % geoTypes.length];
+    const mat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(w.color),
+      wireframe: true,
+      transparent: true,
+      opacity: 0.08,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(
+      w.pos[0] + (Math.random() - 0.5) * 12,
+      w.pos[1] + (Math.random() - 0.5) * 6,
+      w.pos[2] + (Math.random() - 0.5) * 8
+    );
+    mesh.scale.setScalar(1 + Math.random() * 2);
+    scene.add(mesh);
+    floatingGeo.push({ mesh, basePos: mesh.position.clone(), rotSpeed: 0.1 + Math.random() * 0.3, seed: Math.random() * 100 });
+  });
+
+  // ═══════════════════════════════════════
+  // PARTICLE TRAIL — Enhanced
+  // ═══════════════════════════════════════
+  const TRAIL_N = 180;
+  const trailGeo = new THREE.BufferGeometry();
+  const trailPos = new Float32Array(TRAIL_N*3);
+  const trailAlpha = new Float32Array(TRAIL_N);
+  for(let i=0;i<TRAIL_N;i++) { trailAlpha[i]=1-i/TRAIL_N; }
+  trailGeo.setAttribute('position', new THREE.Float32BufferAttribute(trailPos,3));
+  trailGeo.setAttribute('alpha', new THREE.Float32BufferAttribute(trailAlpha,1));
+  const trailMat = new THREE.ShaderMaterial({
+    uniforms: { uSpeed:{value:0}, uTime:{value:0} },
+    vertexShader:`
+      attribute float alpha;
+      varying float vA;
+      uniform float uSpeed;
+      void main(){
+        vA = alpha * uSpeed;
+        vec4 mv = modelViewMatrix * vec4(position,1.0);
+        gl_PointSize = (3.0 + uSpeed*6.0) * (120.0/-mv.z);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader:`
+      varying float vA;
+      uniform float uTime;
+      void main(){
+        float d=length(gl_PointCoord-0.5)*2.0;
+        if(d>1.0) discard;
+        float core = exp(-d*d*4.0) * vA * 0.5;
+        float glow = exp(-d*d*1.5) * vA * 0.15;
+        vec3 col = mix(vec3(0.65,0.75,1.0), vec3(0.8,0.6,1.0), vA);
+        gl_FragColor = vec4(col, core + glow);
+      }`,
+    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+  });
+  const trailPoints = new THREE.Points(trailGeo, trailMat);
+  scene.add(trailPoints);
+  const trailHistory = [];
+  for(let i=0;i<TRAIL_N;i++) trailHistory.push(new THREE.Vector3());
+
+  // ═══════════════════════════════════════
+  // MOUSE REACTIVE PARTICLES
+  // ═══════════════════════════════════════
+  const mouseParticleCount = 50;
+  const mouseGeo = new THREE.BufferGeometry();
+  const mousePos = new Float32Array(mouseParticleCount * 3);
+  const mouseSeed = new Float32Array(mouseParticleCount);
+  for (let i = 0; i < mouseParticleCount; i++) {
+    mouseSeed[i] = Math.random() * 6.28;
+  }
+  mouseGeo.setAttribute('position', new THREE.Float32BufferAttribute(mousePos, 3));
+  mouseGeo.setAttribute('seed', new THREE.Float32BufferAttribute(mouseSeed, 1));
+  const mouseMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      attribute float seed;
+      uniform float uTime;
+      varying float vA;
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = 2.0 * (80.0 / max(-mv.z, 1.0));
+        gl_Position = projectionMatrix * mv;
+        vA = 0.2 + 0.3 * sin(uTime * 2.0 + seed * 5.0);
+      }
+    `,
+    fragmentShader: `
+      varying float vA;
+      void main() {
+        float d = length(gl_PointCoord - 0.5) * 2.0;
+        if (d > 1.0) discard;
+        float a = exp(-d*d*3.0) * vA;
+        gl_FragColor = vec4(0.7, 0.8, 1.0, a);
+      }
+    `,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const mousePoints = new THREE.Points(mouseGeo, mouseMat);
+  scene.add(mousePoints);
+
+  // ═══════════════════════════════════════
+  // AUDIO SYSTEM
+  // ═══════════════════════════════════════
+  let audioCtx, masterGain, soundOn = false;
+  let ambientGainNode, padGainNode, whooshGainNode, chimeGainNode;
+  let padOscs = [], lastChimeWP = -1;
+
+  const CHIME_NOTES = [392.00, 523.25, 659.25, 783.99, 1046.50, 880.00, 587.33, 698.46];
+
+  function initAudio() {
+    if(audioCtx) { audioCtx.resume(); return; }
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    audioCtx.resume();
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.6;
+    masterGain.connect(audioCtx.destination);
+
+    padGainNode = audioCtx.createGain();
+    padGainNode.gain.value = 0;
+
+    const reverbDelay1 = audioCtx.createDelay(1.0);
+    reverbDelay1.delayTime.value = 0.12;
+    const reverbGain1 = audioCtx.createGain();
+    reverbGain1.gain.value = 0.25;
+    const reverbDelay2 = audioCtx.createDelay(1.0);
+    reverbDelay2.delayTime.value = 0.23;
+    const reverbGain2 = audioCtx.createGain();
+    reverbGain2.gain.value = 0.18;
+
+    const padFilter = audioCtx.createBiquadFilter();
+    padFilter.type = 'lowpass';
+    padFilter.frequency.value = 600;
+    padFilter.Q.value = 0.5;
+
+    padGainNode.connect(padFilter);
+    padFilter.connect(masterGain);
+    padFilter.connect(reverbDelay1);
+    reverbDelay1.connect(reverbGain1);
+    reverbGain1.connect(masterGain);
+    reverbGain1.connect(reverbDelay2);
+    reverbDelay2.connect(reverbGain2);
+    reverbGain2.connect(masterGain);
+
+    const padFreqs = [
+      { freq: 65.41, type: 'sine' },
+      { freq: 98.00, type: 'sine' },
+      { freq: 130.81, type: 'sine' },
+      { freq: 164.81, type: 'sine' },
+      { freq: 196.00, type: 'triangle' },
     ];
 
-    function initAudio() {
-      if(audioCtx) { audioCtx.resume(); return; }
-      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-      audioCtx.resume();
+    padFreqs.forEach(({ freq, type }) => {
+      const osc = audioCtx.createOscillator();
+      osc.type = type;
+      osc.frequency.value = freq;
+      const oscGain = audioCtx.createGain();
+      oscGain.gain.value = freq < 100 ? 0.15 : 0.06;
+      osc.connect(oscGain);
+      oscGain.connect(padGainNode);
+      osc.start();
+      padOscs.push({ osc, gain: oscGain, baseFreq: freq });
+    });
 
-      // Master gain (overall volume control)
-      masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.6;
-      masterGain.connect(audioCtx.destination);
+    const lfo = audioCtx.createOscillator();
+    lfo.frequency.value = 0.06;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 2;
+    lfo.connect(lfoGain);
+    lfoGain.connect(padOscs[0].osc.frequency);
+    lfo.start();
 
-      // ── Warm Ambient Pad ──
-      // Multiple detuned sine waves for a lush, warm pad
-      padGainNode = audioCtx.createGain();
-      padGainNode.gain.value = 0;
+    const lfo2 = audioCtx.createOscillator();
+    lfo2.frequency.value = 0.08;
+    const lfoGain2 = audioCtx.createGain();
+    lfoGain2.gain.value = 100;
+    lfo2.connect(lfoGain2);
+    lfoGain2.connect(padFilter.frequency);
+    lfo2.start();
 
-      // Reverb-like effect using feedback delays
-      const reverbDelay1 = audioCtx.createDelay(1.0);
-      reverbDelay1.delayTime.value = 0.12;
-      const reverbGain1 = audioCtx.createGain();
-      reverbGain1.gain.value = 0.25;
-      const reverbDelay2 = audioCtx.createDelay(1.0);
-      reverbDelay2.delayTime.value = 0.23;
-      const reverbGain2 = audioCtx.createGain();
-      reverbGain2.gain.value = 0.18;
+    whooshGainNode = audioCtx.createGain();
+    whooshGainNode.gain.value = 0;
 
-      // Low-pass filter for warmth
-      const padFilter = audioCtx.createBiquadFilter();
-      padFilter.type = 'lowpass';
-      padFilter.frequency.value = 600;
-      padFilter.Q.value = 0.5;
-
-      padGainNode.connect(padFilter);
-      padFilter.connect(masterGain);
-      padFilter.connect(reverbDelay1);
-      reverbDelay1.connect(reverbGain1);
-      reverbGain1.connect(masterGain);
-      reverbGain1.connect(reverbDelay2);
-      reverbDelay2.connect(reverbGain2);
-      reverbGain2.connect(masterGain);
-
-      // Pad oscillators — consonant intervals
-      const padFreqs = [
-        { freq: 65.41, type: 'sine' },    // C2 — deep fundamental
-        { freq: 98.00, type: 'sine' },    // G2 — perfect 5th
-        { freq: 130.81, type: 'sine' },   // C3 — octave
-        { freq: 164.81, type: 'sine' },   // E3 — major 3rd
-        { freq: 196.00, type: 'triangle' }, // G3 — soft shimmer
-      ];
-
-      padFreqs.forEach(({ freq, type }) => {
-        const osc = audioCtx.createOscillator();
-        osc.type = type;
-        osc.frequency.value = freq;
-        const oscGain = audioCtx.createGain();
-        oscGain.gain.value = freq < 100 ? 0.15 : 0.06;
-        osc.connect(oscGain);
-        oscGain.connect(padGainNode);
-        osc.start();
-        padOscs.push({ osc, gain: oscGain, baseFreq: freq });
-      });
-
-      // Slow LFO for gentle movement
-      const lfo = audioCtx.createOscillator();
-      lfo.frequency.value = 0.06; // Very slow
-      const lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = 2;
-      lfo.connect(lfoGain);
-      lfoGain.connect(padOscs[0].osc.frequency);
-      lfo.start();
-
-      // Second LFO for filter cutoff modulation
-      const lfo2 = audioCtx.createOscillator();
-      lfo2.frequency.value = 0.08;
-      const lfoGain2 = audioCtx.createGain();
-      lfoGain2.gain.value = 100;
-      lfo2.connect(lfoGain2);
-      lfoGain2.connect(padFilter.frequency);
-      lfo2.start();
-
-      // ── Smooth Whoosh (filtered, warm) ──
-      whooshGainNode = audioCtx.createGain();
-      whooshGainNode.gain.value = 0;
-
-      const bufSize = audioCtx.sampleRate * 2;
-      const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-      const data = buf.getChannelData(0);
-      // Pink-ish noise (smoother than white)
-      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-      for(let i=0;i<bufSize;i++){
-        const white = Math.random()*2-1;
-        b0 = 0.99886*b0 + white*0.0555179;
-        b1 = 0.99332*b1 + white*0.0750759;
-        b2 = 0.96900*b2 + white*0.1538520;
-        b3 = 0.86650*b3 + white*0.3104856;
-        b4 = 0.55000*b4 + white*0.5329522;
-        b5 = -0.7616*b5 - white*0.0168980;
-        data[i] = (b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.07;
-        b6 = white*0.115926;
-      }
-      const noise = audioCtx.createBufferSource();
-      noise.buffer = buf; noise.loop = true;
-
-      // Heavy filtering for smooth sound
-      const whooshLP = audioCtx.createBiquadFilter();
-      whooshLP.type = 'lowpass';
-      whooshLP.frequency.value = 400;
-      whooshLP.Q.value = 0.3;
-
-      const whooshHP = audioCtx.createBiquadFilter();
-      whooshHP.type = 'highpass';
-      whooshHP.frequency.value = 80;
-      whooshHP.Q.value = 0.3;
-
-      noise.connect(whooshLP);
-      whooshLP.connect(whooshHP);
-      whooshHP.connect(whooshGainNode);
-      whooshGainNode.connect(masterGain);
-      noise.start();
-
-      // ── Chime system (for waypoint transitions) ──
-      chimeGainNode = audioCtx.createGain();
-      chimeGainNode.gain.value = 0.25;
-
-      const chimeReverb1 = audioCtx.createDelay(1.0);
-      chimeReverb1.delayTime.value = 0.18;
-      const chimeReverbGain = audioCtx.createGain();
-      chimeReverbGain.gain.value = 0.3;
-      const chimeReverb2 = audioCtx.createDelay(1.0);
-      chimeReverb2.delayTime.value = 0.35;
-      const chimeReverbGain2 = audioCtx.createGain();
-      chimeReverbGain2.gain.value = 0.15;
-
-      chimeGainNode.connect(masterGain);
-      chimeGainNode.connect(chimeReverb1);
-      chimeReverb1.connect(chimeReverbGain);
-      chimeReverbGain.connect(masterGain);
-      chimeReverbGain.connect(chimeReverb2);
-      chimeReverb2.connect(chimeReverbGain2);
-      chimeReverbGain2.connect(masterGain);
+    const bufSize = audioCtx.sampleRate * 2;
+    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0;i<bufSize;i++){
+      const white = Math.random()*2-1;
+      b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
+      b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
+      b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
+      data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.07;
+      b6=white*0.115926;
     }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buf; noise.loop = true;
 
-    function playChime(wpIndex) {
-      if(!audioCtx || !soundOn || wpIndex === lastChimeWP) return;
-      lastChimeWP = wpIndex;
+    const whooshLP = audioCtx.createBiquadFilter();
+    whooshLP.type = 'lowpass'; whooshLP.frequency.value = 400; whooshLP.Q.value = 0.3;
+    const whooshHP = audioCtx.createBiquadFilter();
+    whooshHP.type = 'highpass'; whooshHP.frequency.value = 80; whooshHP.Q.value = 0.3;
 
-      const freq = CHIME_NOTES[wpIndex % CHIME_NOTES.length];
-      const now = audioCtx.currentTime;
+    noise.connect(whooshLP); whooshLP.connect(whooshHP);
+    whooshHP.connect(whooshGainNode); whooshGainNode.connect(masterGain);
+    noise.start();
 
-      // Main tone — soft sine bell
+    chimeGainNode = audioCtx.createGain();
+    chimeGainNode.gain.value = 0.25;
+    const chimeReverb1 = audioCtx.createDelay(1.0);
+    chimeReverb1.delayTime.value = 0.18;
+    const chimeReverbGain = audioCtx.createGain();
+    chimeReverbGain.gain.value = 0.3;
+    const chimeReverb2 = audioCtx.createDelay(1.0);
+    chimeReverb2.delayTime.value = 0.35;
+    const chimeReverbGain2 = audioCtx.createGain();
+    chimeReverbGain2.gain.value = 0.15;
+
+    chimeGainNode.connect(masterGain);
+    chimeGainNode.connect(chimeReverb1);
+    chimeReverb1.connect(chimeReverbGain);
+    chimeReverbGain.connect(masterGain);
+    chimeReverbGain.connect(chimeReverb2);
+    chimeReverb2.connect(chimeReverbGain2);
+    chimeReverbGain2.connect(masterGain);
+  }
+
+  function playChime(wpIndex) {
+    if(!audioCtx || !soundOn || wpIndex === lastChimeWP) return;
+    lastChimeWP = wpIndex;
+    const freq = CHIME_NOTES[wpIndex % CHIME_NOTES.length];
+    const now = audioCtx.currentTime;
+
+    [
+      { f: freq, vol: 0.12, decay: 3.0 },
+      { f: freq * 2, vol: 0.04, decay: 2.0 },
+      { f: freq * 1.5, vol: 0.02, decay: 1.5 },
+    ].forEach(({ f, vol, decay }) => {
       const osc = audioCtx.createOscillator();
       osc.type = 'sine';
-      osc.frequency.value = freq;
-
-      // Harmonic — octave above, very quiet
-      const osc2 = audioCtx.createOscillator();
-      osc2.type = 'sine';
-      osc2.frequency.value = freq * 2;
-
-      // Fifth above for richness
-      const osc3 = audioCtx.createOscillator();
-      osc3.type = 'sine';
-      osc3.frequency.value = freq * 1.5;
-
+      osc.frequency.value = f;
       const env = audioCtx.createGain();
       env.gain.setValueAtTime(0, now);
-      env.gain.linearRampToValueAtTime(0.12, now + 0.05); // soft attack
-      env.gain.exponentialRampToValueAtTime(0.001, now + 3.0); // long, sweet decay
+      env.gain.linearRampToValueAtTime(vol, now + 0.05);
+      env.gain.exponentialRampToValueAtTime(0.001, now + decay);
+      osc.connect(env); env.connect(chimeGainNode);
+      osc.start(now); osc.stop(now + decay + 0.5);
+    });
+  }
 
-      const env2 = audioCtx.createGain();
-      env2.gain.setValueAtTime(0, now);
-      env2.gain.linearRampToValueAtTime(0.04, now + 0.03);
-      env2.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+  function updateAudio(spd) {
+    if(!audioCtx || !soundOn) return;
+    const t = audioCtx.currentTime;
+    padGainNode.gain.linearRampToValueAtTime(0.5 + spd * 0.3, t + 0.15);
+    whooshGainNode.gain.linearRampToValueAtTime(spd * spd * 0.08, t + 0.1);
+    padOscs.forEach(({ osc, baseFreq }) => {
+      osc.frequency.linearRampToValueAtTime(baseFreq + spd * baseFreq * 0.03, t + 0.2);
+    });
+  }
 
-      const env3 = audioCtx.createGain();
-      env3.gain.setValueAtTime(0, now);
-      env3.gain.linearRampToValueAtTime(0.02, now + 0.04);
-      env3.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+  const soundBtn = document.getElementById('sound-btn');
+  let audioStarted = false;
+  function autoStartAudio() {
+    if (audioStarted) return;
+    audioStarted = true;
+    initAudio();
+    soundOn = true;
+    soundBtn.textContent = '🔊';
+    if (padGainNode) padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 1.5);
+  }
+  ['click','touchstart','wheel','keydown'].forEach(evt => {
+    document.addEventListener(evt, autoStartAudio, { once: true, passive: true });
+  });
 
-      osc.connect(env);
-      osc2.connect(env2);
-      osc3.connect(env3);
-      env.connect(chimeGainNode);
-      env2.connect(chimeGainNode);
-      env3.connect(chimeGainNode);
-
-      osc.start(now);
-      osc2.start(now);
-      osc3.start(now);
-      osc.stop(now + 3.5);
-      osc2.stop(now + 2.5);
-      osc3.stop(now + 2.0);
+  soundBtn.addEventListener('click', () => {
+    if (!audioStarted) { autoStartAudio(); return; }
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? '🔊' : '🔇';
+    if (soundOn && padGainNode) {
+      audioCtx.resume();
+      padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.5);
+    } else if (!soundOn && padGainNode) {
+      padGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+      whooshGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
     }
+  });
 
-    function updateAudio(spd) {
-      if(!audioCtx || !soundOn) return;
-      const t = audioCtx.currentTime;
+  document.addEventListener('visibilitychange', () => {
+    if (!audioCtx || !audioStarted) return;
+    if (document.hidden) audioCtx.suspend();
+    else if (soundOn) audioCtx.resume();
+  });
+  window.addEventListener('blur', () => { if (audioCtx && audioStarted) audioCtx.suspend(); });
+  window.addEventListener('focus', () => { if (audioCtx && audioStarted && soundOn) audioCtx.resume(); });
 
-      // Pad: gentle swell with speed, always softly present
-      padGainNode.gain.linearRampToValueAtTime(
-        0.5 + spd * 0.3, t + 0.15
-      );
+  // ═══════════════════════════════════════
+  // NAVIGATION — SNAP-TO-WAYPOINT
+  // ═══════════════════════════════════════
+  let prog = 0, tgt = 0;
+  let velocity = 0;
+  const touchLayer = document.getElementById('touch-layer');
+  let scrollAccum = 0;
+  const SCROLL_THRESHOLD = 6;
+  let scrollDir = 0;
+  let scrollTimeout = null;
+  let targetWP = 0;
 
-      // Whoosh: very gentle, only audible at higher speeds
-      whooshGainNode.gain.linearRampToValueAtTime(
-        spd * spd * 0.08, t + 0.1  // Quadratic so it's barely there at low speeds
-      );
-
-      // Pad pitch rises very subtly with speed
-      padOscs.forEach(({ osc, baseFreq }) => {
-        osc.frequency.linearRampToValueAtTime(
-          baseFreq + spd * baseFreq * 0.03, t + 0.2
-        );
-      });
+  function onWheel(e) {
+    e.preventDefault();
+    const dir = Math.sign(e.deltaY);
+    if (dir !== scrollDir) { scrollAccum = 0; scrollDir = dir; }
+    scrollAccum += 1;
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => { scrollAccum = 0; }, 300);
+    if (scrollAccum >= SCROLL_THRESHOLD) {
+      scrollAccum = 0;
+      const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
+      if (nextWP !== targetWP) { targetWP = nextWP; tgt = wpT[targetWP]; }
     }
+  }
+  window.addEventListener('wheel', onWheel, {passive:false});
+  touchLayer.addEventListener('wheel', onWheel, {passive:false});
 
-    const soundBtn = document.getElementById('sound-btn');
-
-    // Auto-start sound on first user interaction (browsers require gesture)
-    let audioStarted = false;
-    function autoStartAudio() {
-      if (audioStarted) return;
-      audioStarted = true;
-      initAudio();
-      soundOn = true;
-      soundBtn.textContent = '🔊';
-      if (padGainNode) {
-        padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 1.5);
-      }
+  let ty0=0, swiping=false, swipeLocked=false;
+  const TOUCH_THRESHOLD = 30;
+  function handleTouchStart(e) {
+    if(e.target.closest('input,textarea,button,a')) return;
+    ty0 = e.touches[0].clientY; swiping = true; swipeLocked = false;
+  }
+  function handleTouchMove(e) {
+    if(!swiping || swipeLocked) return;
+    if(e.target.closest('input,textarea')) return;
+    e.preventDefault();
+    const dy = ty0 - e.touches[0].clientY;
+    if (Math.abs(dy) > TOUCH_THRESHOLD) {
+      const dir = Math.sign(dy);
+      const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
+      if (nextWP !== targetWP) { targetWP = nextWP; tgt = wpT[targetWP]; }
+      swipeLocked = true;
     }
-    // Listen for any first interaction to unlock audio
-    ['click','touchstart','wheel','keydown'].forEach(evt => {
-      document.addEventListener(evt, autoStartAudio, { once: true, passive: true });
-    });
+  }
+  function handleTouchEnd() { swiping = false; swipeLocked = false; }
 
-    // Manual toggle still works
-    soundBtn.addEventListener('click', () => {
-      if (!audioStarted) { autoStartAudio(); return; }
-      soundOn = !soundOn;
-      soundBtn.textContent = soundOn ? '🔊' : '🔇';
-      if (soundOn && padGainNode) {
-        audioCtx.resume();
-        padGainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.5);
-      } else if (!soundOn && padGainNode) {
-        padGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-        whooshGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-      }
-    });
+  touchLayer.addEventListener('touchstart', handleTouchStart, {passive:true});
+  touchLayer.addEventListener('touchmove', handleTouchMove, {passive:false});
+  touchLayer.addEventListener('touchend', handleTouchEnd, {passive:true});
+  document.addEventListener('touchstart', handleTouchStart, {passive:true});
+  document.addEventListener('touchmove', handleTouchMove, {passive:false});
+  document.addEventListener('touchend', handleTouchEnd, {passive:true});
 
-    // Pause/resume sound when user leaves/returns to the tab
-    document.addEventListener('visibilitychange', () => {
-      if (!audioCtx || !audioStarted) return;
-      if (document.hidden) {
-        // Tab hidden — mute
-        audioCtx.suspend();
-      } else {
-        // Tab visible — resume if sound was on
-        if (soundOn) {
-          audioCtx.resume();
-        }
-      }
-    });
-
-    // Also handle window blur/focus for mobile app-switching
-    window.addEventListener('blur', () => {
-      if (audioCtx && audioStarted) audioCtx.suspend();
-    });
-    window.addEventListener('focus', () => {
-      if (audioCtx && audioStarted && soundOn) audioCtx.resume();
-    });
-
-    // ═══════════════════════════════════════
-    // NAVIGATION — SNAP-TO-WAYPOINT SCROLLING
-    // ═══════════════════════════════════════
-    let prog = 0, tgt = 0;
-    let velocity = 0;
-    const MOMENTUM_DECAY = 0.88;
-    const touchLayer = document.getElementById('touch-layer');
-
-    // Scroll accumulator — user must scroll *enough* to break free of a waypoint
-    let scrollAccum = 0;
-    const SCROLL_THRESHOLD = 6;    // scroll ticks needed to move to next waypoint
-    let scrollDir = 0;             // current scroll direction
-    let scrollTimeout = null;      // reset accumulator after pause
-
-    // Waypoint snap behavior: target always snaps to nearest waypoint
-    let targetWP = 0;
-
-    function onWheel(e) {
+  window.addEventListener('keydown', (e) => {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if(e.key==='ArrowDown'||e.key===' ') {
       e.preventDefault();
-      const dir = Math.sign(e.deltaY);
-
-      // If direction changed, reset accumulator
-      if (dir !== scrollDir) {
-        scrollAccum = 0;
-        scrollDir = dir;
-      }
-
-      scrollAccum += 1;
-
-      // Reset accumulator after a pause in scrolling
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => { scrollAccum = 0; }, 300);
-
-      // Only advance to next waypoint after enough scroll ticks
-      if (scrollAccum >= SCROLL_THRESHOLD) {
-        scrollAccum = 0;
-        const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
-        if (nextWP !== targetWP) {
-          targetWP = nextWP;
-          tgt = wpT[targetWP];
-        }
-      }
-    }
-    window.addEventListener('wheel', onWheel, {passive:false});
-    touchLayer.addEventListener('wheel', onWheel, {passive:false});
-
-    // Touch — light swipe detection
-    let ty0=0, swiping=false, swipeLocked=false;
-    const TOUCH_THRESHOLD = 30; // pixels — very light swipe
-
-    function handleTouchStart(e) {
-      if(e.target.closest('input,textarea,button,a')) return;
-      ty0 = e.touches[0].clientY;
-      swiping = true;
-      swipeLocked = false;
-    }
-    function handleTouchMove(e) {
-      if(!swiping || swipeLocked) return;
-      if(e.target.closest('input,textarea')) return;
+      targetWP = Math.min(N-1, targetWP+1); tgt = wpT[targetWP];
+    } else if(e.key==='ArrowUp') {
       e.preventDefault();
-      const dy = ty0 - e.touches[0].clientY;
-
-      if (Math.abs(dy) > TOUCH_THRESHOLD) {
-        const dir = Math.sign(dy);
-        const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
-        if (nextWP !== targetWP) {
-          targetWP = nextWP;
-          tgt = wpT[targetWP];
-        }
-        // Lock until finger lifts — one section per swipe
-        swipeLocked = true;
-      }
+      targetWP = Math.max(0, targetWP-1); tgt = wpT[targetWP];
     }
-    function handleTouchEnd() {
-      swiping = false;
-      swipeLocked = false;
+  });
+
+  // ═══════════════════════════════════════
+  // LOADING
+  // ═══════════════════════════════════════
+  const loader = document.getElementById('loader');
+  const loaderFill = document.getElementById('loader-fill');
+  const loaderPercent = document.getElementById('loader-percent');
+  let loaded = false;
+  function fakeLoad() {
+    let p=0;
+    const iv = setInterval(()=>{
+      p += 8 + Math.random()*12;
+      if(p>=100) {
+        p=100; clearInterval(iv);
+        loaded=true;
+        loader.classList.add('ready');
+        setTimeout(()=>{ loader.classList.add('done'); }, 300);
+      }
+      loaderFill.style.width = p+'%';
+      loaderPercent.textContent = Math.floor(p) + '%';
+    }, 100);
+  }
+  fakeLoad();
+
+  // ═══════════════════════════════════════
+  // ANIMATION LOOP — Cinematic 60fps
+  // ═══════════════════════════════════════
+  const dots = document.querySelectorAll('.dot');
+  const wpEls = WP.map((_,i)=>document.getElementById(`wp-${i}`));
+  const warpEl = document.getElementById('warp');
+  const quoteEl = document.getElementById('quote-overlay');
+  const sectionProgress = document.getElementById('section-progress');
+  const statusSection = document.getElementById('status-section');
+  const statusDepth = document.getElementById('status-depth');
+  let curWP=0, lastProg=0, lastTime=performance.now();
+  let smoothSpeed = 0;
+
+  const camPosSmooth = new THREE.Vector3();
+  const camLookSmooth = new THREE.Vector3();
+  let camInited = false;
+
+  // Raycaster for mouse-reactive particles
+  const raycaster = new THREE.Raycaster();
+  const mouseVec = new THREE.Vector2();
+
+  function tick() {
+    requestAnimationFrame(tick);
+    if(!loaded) return;
+
+    const now = performance.now();
+    const dt = Math.min((now-lastTime)/1000, 0.033);
+    lastTime = now;
+    const t = now * 0.001;
+
+    // Custom cursor
+    updateCursor();
+
+    // Smooth navigation
+    const lerpFactor = 1 - Math.pow(0.012, dt);
+    prog += (tgt - prog) * lerpFactor;
+    prog = Math.max(0, Math.min(1, prog));
+
+    // Speed calculation
+    const rawSpeed = Math.abs(prog - lastProg) / Math.max(dt, 0.001);
+    smoothSpeed += (Math.min(rawSpeed * 6, 1) - smoothSpeed) * lerpFactor;
+    lastProg = prog;
+
+    // Mouse parallax
+    smoothMouseX += (mouseX - smoothMouseX) * lerpFactor * 0.5;
+    smoothMouseY += (mouseY - smoothMouseY) * lerpFactor * 0.5;
+
+    // Camera — ultra-smooth
+    const ct = Math.max(0.001, Math.min(0.999, prog));
+    const targetPos = spline.getPointAt(ct);
+    const lookTarget = spline.getPointAt(Math.min(ct+0.012, 0.999));
+    targetPos.x += smoothMouseX * 0.8;
+    targetPos.y -= smoothMouseY * 0.5;
+
+    if (!camInited) {
+      camPosSmooth.copy(targetPos);
+      camLookSmooth.copy(lookTarget);
+      camInited = true;
     }
 
-    // Attach to both touchLayer and document for full coverage
-    touchLayer.addEventListener('touchstart', handleTouchStart, {passive:true});
-    touchLayer.addEventListener('touchmove', handleTouchMove, {passive:false});
-    touchLayer.addEventListener('touchend', handleTouchEnd, {passive:true});
-    document.addEventListener('touchstart', handleTouchStart, {passive:true});
-    document.addEventListener('touchmove', handleTouchMove, {passive:false});
-    document.addEventListener('touchend', handleTouchEnd, {passive:true});
+    const camLerp = 1 - Math.pow(0.018, dt);
+    camPosSmooth.lerp(targetPos, camLerp);
+    camLookSmooth.lerp(lookTarget, camLerp);
+    camera.position.copy(camPosSmooth);
+    camera.lookAt(camLookSmooth);
 
-    // Keyboard — already snaps perfectly
-    window.addEventListener('keydown', (e) => {
-      // Don't hijack keys when user is typing in a form field
-      const tag = e.target.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    // Subtle camera roll + breathing
+    const tan = spline.getTangentAt(ct);
+    camera.rotation.z = -tan.x * 0.06 + smoothMouseX * 0.02 + Math.sin(t * 0.3) * 0.003;
 
-      if(e.key==='ArrowDown'||e.key===' ') {
-        e.preventDefault();
-        targetWP = Math.min(N-1, targetWP+1);
-        tgt = wpT[targetWP];
-      } else if(e.key==='ArrowUp') {
-        e.preventDefault();
-        targetWP = Math.max(0, targetWP-1);
-        tgt = wpT[targetWP];
-      }
+    // Star uniforms
+    near.mat.uniforms.uTime.value = t;
+    near.mat.uniforms.uSpeed.value = smoothSpeed;
+    far.mat.uniforms.uTime.value = t;
+    far.mat.uniforms.uSpeed.value = smoothSpeed;
+    dust.mat.uniforms.uTime.value = t;
+    dust.mat.uniforms.uSpeed.value = smoothSpeed * 0.5;
+
+    // Nebula animation
+    nebulae.forEach((n, i) => {
+      n.mat.uniforms.uTime.value = t;
+      n.mat.uniforms.uCamPos.value.copy(camera.position);
+      const d = camera.position.distanceTo(new THREE.Vector3(...WP[i+1].pos));
+      n.mat.uniforms.uProximity.value = Math.max(0, 1 - d / 30);
     });
 
-    // Dot clicks handled in UI build section above
+    // Floating geometry
+    floatingGeo.forEach((fg) => {
+      fg.mesh.rotation.x = t * fg.rotSpeed * 0.3;
+      fg.mesh.rotation.y = t * fg.rotSpeed * 0.5;
+      fg.mesh.rotation.z = t * fg.rotSpeed * 0.2;
+      // Gentle float
+      fg.mesh.position.y = fg.basePos.y + Math.sin(t * 0.5 + fg.seed) * 0.8;
+      fg.mesh.position.x = fg.basePos.x + Math.cos(t * 0.3 + fg.seed) * 0.5;
+      // Fade based on distance
+      const d = camera.position.distanceTo(fg.mesh.position);
+      fg.mesh.material.opacity = Math.max(0, 0.12 - d * 0.002);
+    });
 
-    // ═══════════════════════════════════════
-    // LOADING
-    // ═══════════════════════════════════════
-    const loader = document.getElementById('loader');
-    const loaderFill = document.getElementById('loader-fill');
-    let loaded = false;
-    function fakeLoad() {
-      let p=0;
-      const iv = setInterval(()=>{
-        p += 15 + Math.random()*20;
-        if(p>=100) {
-          p=100; clearInterval(iv);
-          // Enable scrolling immediately, let fade happen in background
-          loaded=true;
-          loader.classList.add('ready'); // pass through touches now
-          setTimeout(()=>{ loader.classList.add('done'); }, 200);
-        }
-        loaderFill.style.width = p+'%';
-      }, 80);
+    // Warp overlay
+    warpEl.style.opacity = smoothSpeed * 0.7;
+
+    // Particle trail
+    trailHistory.unshift(camera.position.clone().add(new THREE.Vector3(
+      (Math.random()-.5)*0.3, (Math.random()-.5)*0.3, 0
+    )));
+    trailHistory.length = TRAIL_N;
+    const tp = trailGeo.attributes.position.array;
+    for(let i=0;i<TRAIL_N;i++){
+      const h=trailHistory[i];
+      if(h){tp[i*3]=h.x;tp[i*3+1]=h.y;tp[i*3+2]=h.z;}
     }
-    fakeLoad();
+    trailGeo.attributes.position.needsUpdate=true;
+    trailMat.uniforms.uSpeed.value = smoothSpeed;
+    trailMat.uniforms.uTime.value = t;
 
-    // ═══════════════════════════════════════
-    // ANIMATION LOOP — 60fps buttery smooth
-    // ═══════════════════════════════════════
-    const dots = document.querySelectorAll('.dot');
-    const wpEls = WP.map((_,i)=>document.getElementById(`wp-${i}`));
-    const warpEl = document.getElementById('warp');
-    const quoteEl = document.getElementById('quote-overlay');
-    let curWP=0, lastProg=0, lastTime=performance.now();
-    let smoothSpeed = 0;
-
-    // Camera smoothing targets
-    const camPosSmooth = new THREE.Vector3();
-    const camLookSmooth = new THREE.Vector3();
-    let camInited = false;
-
-    function tick() {
-      requestAnimationFrame(tick);
-      if(!loaded) return;
-
-      const now = performance.now();
-      const dt = Math.min((now-lastTime)/1000, 0.033); // Cap at ~30fps minimum
-      lastTime = now;
-
-      // Smooth glide to target waypoint (slow, cinematic ease)
-      // Uses a softer lerp so the camera floats gracefully between stops
-      const lerpFactor = 1 - Math.pow(0.015, dt); // Very smooth ~98.5% per second
-      prog += (tgt - prog) * lerpFactor;
-      prog = Math.max(0, Math.min(1, prog));
-
-      // Speed calculation (smoothed)
-      const rawSpeed = Math.abs(prog - lastProg) / Math.max(dt, 0.001);
-      smoothSpeed += (Math.min(rawSpeed * 6, 1) - smoothSpeed) * lerpFactor;
-      lastProg = prog;
-
-      // Mouse parallax (smooth)
-      smoothMouseX += (mouseX - smoothMouseX) * lerpFactor * 0.5;
-      smoothMouseY += (mouseY - smoothMouseY) * lerpFactor * 0.5;
-
-      // Camera — ultra-smooth with parallax
-      const ct = Math.max(0.001, Math.min(0.999, prog));
-      const targetPos = spline.getPointAt(ct);
-      const lookTarget = spline.getPointAt(Math.min(ct+0.012, 0.999));
-
-      // Add mouse parallax offset
-      targetPos.x += smoothMouseX * 0.8;
-      targetPos.y -= smoothMouseY * 0.5;
-
-      if (!camInited) {
-        camPosSmooth.copy(targetPos);
-        camLookSmooth.copy(lookTarget);
-        camInited = true;
-      }
-
-      // Extra smooth camera (double-smoothed)
-      const camLerp = 1 - Math.pow(0.02, dt);
-      camPosSmooth.lerp(targetPos, camLerp);
-      camLookSmooth.lerp(lookTarget, camLerp);
-
-      camera.position.copy(camPosSmooth);
-      camera.lookAt(camLookSmooth);
-
-      // Subtle roll
-      const tan = spline.getTangentAt(ct);
-      camera.rotation.z = -tan.x * 0.06 + smoothMouseX * 0.02;
-
-      // Star effects
-      const t = now*0.001;
-      near.mat.uniforms.uTime.value = t;
-      near.mat.uniforms.uSpeed.value = smoothSpeed;
-      far.mat.uniforms.uTime.value = t;
-      far.mat.uniforms.uSpeed.value = smoothSpeed;
-      dust.mat.uniforms.uTime.value = t;
-      dust.mat.uniforms.uSpeed.value = smoothSpeed * 0.5;
-
-      // Warp overlay
-      warpEl.style.opacity = smoothSpeed * 0.6;
-
-      // Particle trail
-      trailHistory.unshift(camera.position.clone().add(new THREE.Vector3(
-        (Math.random()-.5)*0.3, (Math.random()-.5)*0.3, 0
-      )));
-      trailHistory.length = TRAIL_N;
-      const tp = trailGeo.attributes.position.array;
-      for(let i=0;i<TRAIL_N;i++){
-        const h=trailHistory[i];
-        if(h){tp[i*3]=h.x;tp[i*3+1]=h.y;tp[i*3+2]=h.z;}
-      }
-      trailGeo.attributes.position.needsUpdate=true;
-      trailMat.uniforms.uSpeed.value = smoothSpeed;
-
-      // Pulse orbs
-      orbs.forEach((o,i) => {
-        const pulse = 1+0.12*Math.sin(t*1.2+i*1.7);
-        o.sp.scale.setScalar(o.gs*pulse);
-        o.sp2.scale.setScalar(o.gs2*(1+0.08*Math.sin(t*0.8+i*2.1)));
-        const d = camera.position.distanceTo(o.mesh.position);
-        const prox = Math.max(0, 1 - d/20);
-        o.sp.material.opacity = 0.4 + prox * 0.5;
-        o.sp2.material.opacity = 0.08 + prox * 0.12;
-      });
-
-      // Active waypoint
-      let closest=0, cd=Infinity;
-      wpT.forEach((w,i)=>{ const d=Math.abs(prog-w); if(d<cd){cd=d;closest=i;} });
-
-      // Trigger chime on waypoint change
-      if (closest !== curWP) {
-        playChime(closest);
-      }
-      curWP = closest;
-
-      wpEls.forEach((el,i) => {
-        el.classList.toggle('active', Math.abs(prog-wpT[i])<0.05);
-      });
-      dots.forEach((d,i) => d.classList.toggle('active', i===curWP));
-
-      // Quote overlay — show at start, re-show when scrolling back to first orb
-      if(prog>0.02) {
-        quoteEl.classList.add('gone');
-      } else {
-        quoteEl.classList.remove('gone');
-      }
-
-      // Audio
-      updateAudio(smoothSpeed);
-
-      renderer.render(scene, camera);
+    // Mouse-reactive particles — orbit around cursor in world space
+    const mp = mouseGeo.attributes.position.array;
+    mouseVec.set(mouseNormX * 2 - 1, -(mouseNormY * 2 - 1));
+    raycaster.setFromCamera(mouseVec, camera);
+    const mouseWorldPos = raycaster.ray.at(8, new THREE.Vector3());
+    for (let i = 0; i < mouseParticleCount; i++) {
+      const angle = (i / mouseParticleCount) * Math.PI * 2 + t * 0.5;
+      const r = 0.5 + Math.sin(t * 1.5 + mouseSeed[i] * 3) * 0.3;
+      mp[i*3] = mouseWorldPos.x + Math.cos(angle) * r;
+      mp[i*3+1] = mouseWorldPos.y + Math.sin(angle) * r;
+      mp[i*3+2] = mouseWorldPos.z + Math.sin(angle * 0.5 + t) * r * 0.3;
     }
-    tick();
+    mouseGeo.attributes.position.needsUpdate = true;
+    mouseMat.uniforms.uTime.value = t;
 
-    // Resize
-    function onResize(){
-      const w = innerWidth, h = innerHeight;
-      camera.aspect = w/h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(devicePixelRatio, 2.5));
-    }
-    addEventListener('resize', onResize);
-    addEventListener('orientationchange', ()=>setTimeout(onResize,200));
-    if(visualViewport) visualViewport.addEventListener('resize', onResize);
+    // Pulse orbs
+    orbs.forEach((o,i) => {
+      const pulse = 1+0.15*Math.sin(t*1.2+i*1.7);
+      o.sp.scale.setScalar(o.gs*pulse);
+      o.sp2.scale.setScalar(o.gs2*(1+0.1*Math.sin(t*0.8+i*2.1)));
+      const d = camera.position.distanceTo(o.mesh.position);
+      const prox = Math.max(0, 1 - d/20);
+      o.sp.material.opacity = 0.35 + prox * 0.55;
+      o.sp2.material.opacity = 0.06 + prox * 0.14;
+      o.ringMat.uniforms.uTime.value = t;
+    });
 
-    // Fullscreen on first interaction
-    let fs=false;
-    function tryFS(){
-      if(fs)return; fs=true;
-      const r=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
-      if(r) r.call(document.documentElement).catch(()=>{});
-    }
-    document.addEventListener('touchstart',tryFS,{once:true});
+    // Active waypoint
+    let closest=0, cd=Infinity;
+    wpT.forEach((w,i)=>{ const d=Math.abs(prog-w); if(d<cd){cd=d;closest=i;} });
+    if (closest !== curWP) playChime(closest);
+    curWP = closest;
 
-  })();
+    wpEls.forEach((el,i) => {
+      el.classList.toggle('active', Math.abs(prog-wpT[i])<0.05);
+    });
+    dots.forEach((d,i) => d.classList.toggle('active', i===curWP));
+
+    // Status bar updates
+    statusSection.textContent = String(curWP + 1).padStart(2, '0');
+    statusDepth.textContent = (prog * 100).toFixed(1);
+    sectionProgress.style.width = (prog * 100) + '%';
+
+    // Quote overlay
+    if(prog>0.02) quoteEl.classList.add('gone');
+    else quoteEl.classList.remove('gone');
+
+    // Post-processing updates
+    chromaPass.uniforms.uIntensity.value = smoothSpeed * 3;
+    chromaPass.uniforms.uTime.value = t;
+    filmPass.uniforms.uTime.value = t;
+    filmPass.uniforms.uSpeed.value = smoothSpeed;
+
+    // Bloom reacts to speed
+    bloomPass.strength = 0.7 + smoothSpeed * 1.5;
+    bloomPass.radius = 0.5 + smoothSpeed * 0.3;
+
+    // Audio
+    updateAudio(smoothSpeed);
+
+    // Render via composer (post-processing)
+    composer.render();
+  }
+  tick();
+
+  // Resize
+  function onResize(){
+    const w = innerWidth, h = innerHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    composer.setSize(w, h);
+    bloomPass.setSize(w, h);
+    near.mat.uniforms.uResolution.value.set(w, h);
+  }
+  addEventListener('resize', onResize);
+  addEventListener('orientationchange', ()=>setTimeout(onResize,200));
+  if(visualViewport) visualViewport.addEventListener('resize', onResize);
+
+  // Make handleSubmit global
+  window.handleSubmit = handleSubmit;
+  window.targetWP = targetWP;
 
   // ═══════════════════════════════════════
   // CONTACT FORM
@@ -1352,9 +1875,10 @@
       const d=await r.json();
       if(d.success){st.textContent='✓ Sent!';st.className='form-status ok';document.getElementById('contact-form').reset();_ls=Date.now();}
       else throw 0;
-    }catch(e){st.textContent='Failed. Try again.';st.className='form-status err';}
+    }catch(err){st.textContent='Failed. Try again.';st.className='form-status err';}
     btn.textContent='Send Message ✉';btn.disabled=false;
   }
+
   </script>
 </body>
 </html>
