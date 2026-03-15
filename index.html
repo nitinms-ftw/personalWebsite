@@ -1861,7 +1861,7 @@
   // Touch: smooth continuous drag + snap to nearest waypoint on release
   let ty0=0, tyLast=0, swiping=false, touchVelocity=0;
   let touchDragTarget = tgt; // smooth target during drag
-  const TOUCH_SENSITIVITY = 2.5; // how fast dragging moves through space
+  const TOUCH_SENSITIVITY = 1.875; // how fast dragging moves through space (25% slower)
   const SNAP_THRESHOLD = 0.015; // snap to WP if within this range
 
   function handleTouchStart(e) {
@@ -1893,7 +1893,7 @@
     swiping = false;
 
     // Add momentum
-    const momentum = touchVelocity * 8;
+    const momentum = touchVelocity * 6;
     touchDragTarget = Math.max(0, Math.min(1, touchDragTarget + momentum));
 
     // Snap to nearest waypoint
