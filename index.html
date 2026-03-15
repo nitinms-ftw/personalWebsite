@@ -960,19 +960,31 @@
   }
 
   // ═══════════════════════════════════════
-  // THREE.JS — HIGH-END SETUP
+  // PERFORMANCE TIER DETECTION
+  // ═══════════════════════════════════════
+  const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                   || (navigator.maxTouchPoints > 1 && innerWidth < 1024);
+  const isLowEnd = isMobile && (navigator.hardwareConcurrency <= 4 || innerWidth < 500);
+
+  // Performance multiplier: 1.0 = full desktop, 0.3 = low-end mobile
+  const PERF = isMobile ? (isLowEnd ? 0.2 : 0.4) : 1.0;
+  const TIER = isLowEnd ? 'LOW' : (isMobile ? 'MID' : 'HIGH');
+  console.log(`[Cosmos] Performance tier: ${TIER}, multiplier: ${PERF}, mobile: ${isMobile}`);
+
+  // ═══════════════════════════════════════
+  // THREE.JS — ADAPTIVE SETUP
   // ═══════════════════════════════════════
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x030108, 0.0012);
   const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({
-    antialias: true,
+    antialias: !isMobile,
     powerPreference: 'high-performance',
     alpha: false,
     stencil: false
   });
   renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
   renderer.setClearColor(0x030108);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.25;
@@ -980,28 +992,37 @@
   document.body.prepend(renderer.domElement);
 
   // ═══════════════════════════════════════
-  // POST-PROCESSING PIPELINE
+  // POST-PROCESSING PIPELINE (adaptive)
   // ═══════════════════════════════════════
-  const composer = new EffectComposer(renderer);
-  const renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
+  const usePostProcessing = TIER !== 'LOW';
+  let composer, bloomPass, chromaPass, filmPass;
 
-  // Unreal Bloom — the key to that premium glow
-  const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(innerWidth, innerHeight),
-    0.6,    // strength — rich space glow
-    0.5,    // radius
-    0.3     // threshold — bloom the bright stars
-  );
-  composer.addPass(bloomPass);
+  if (usePostProcessing) {
+    composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
 
-  // Chromatic Aberration — reacts to speed
-  const chromaPass = new ShaderPass(ChromaticAberrationShader);
-  composer.addPass(chromaPass);
+    // Bloom — disabled on low-end, reduced on mid
+    bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(innerWidth, innerHeight),
+      isMobile ? 0.4 : 0.6,
+      isMobile ? 0.3 : 0.5,
+      isMobile ? 0.4 : 0.3
+    );
+    composer.addPass(bloomPass);
 
-  // Film Grain + Enhanced Vignette
-  const filmPass = new ShaderPass(FilmGrainShader);
-  composer.addPass(filmPass);
+    // Chromatic Aberration — desktop only
+    if (!isMobile) {
+      chromaPass = new ShaderPass(ChromaticAberrationShader);
+      composer.addPass(chromaPass);
+    }
+
+    // Film Grain — desktop only
+    if (!isMobile) {
+      filmPass = new ShaderPass(FilmGrainShader);
+      composer.addPass(filmPass);
+    }
+  }
 
   // ═══════════════════════════════════════
   // CAMERA PATH
@@ -1120,21 +1141,19 @@
     return { points:new THREE.Points(g,m), mat:m };
   }
 
-  // Close stars — bright, big, fly past you (the "you're IN space" layer)
-  const close = mkStars(400, 25, [0.8,4.0], 0.7);
-  // Medium stars — the main field
-  const near = mkStars(2500, 65, [0.3,2.2], 0.55);
-  // Distant stars — dense background carpet
-  const far = mkStars(5000, 300, [0.12,0.8], 0.22);
-  // Cosmic dust — barely visible, adds density
-  const dust = mkStars(1500, 180, [0.05,0.25], 0.08);
-  scene.add(close.points); scene.add(near.points); scene.add(far.points); scene.add(dust.points);
+  // Stars — scaled by performance tier
+  const close = mkStars(Math.floor(400 * PERF), 25, [0.8, 4.0], 0.7);
+  const near = mkStars(Math.floor(2500 * PERF), 65, [0.3, 2.2], 0.55);
+  const far = mkStars(Math.floor(5000 * PERF), 300, [0.12, 0.8], 0.22);
+  const dust = TIER !== 'LOW' ? mkStars(Math.floor(1500 * PERF), 180, [0.05, 0.25], 0.08) : null;
+  scene.add(close.points); scene.add(near.points); scene.add(far.points);
+  if (dust) scene.add(dust.points);
 
   // ═══════════════════════════════════════
   // FOREGROUND DRIFT PARTICLES — "I'm in space" layer
   // Large, soft, slowly drifting particles around the camera
   // ═══════════════════════════════════════
-  const driftCount = 60;
+  const driftCount = Math.floor(60 * PERF);
   const driftGeo = new THREE.BufferGeometry();
   const driftPositions = new Float32Array(driftCount * 3);
   const driftSeeds = new Float32Array(driftCount);
@@ -1185,7 +1204,7 @@
   // ═══════════════════════════════════════
   function createNebula(position, color, size) {
     const nebulaGeo = new THREE.BufferGeometry();
-    const count = 200;
+    const count = Math.floor(200 * PERF);
     const positions = new Float32Array(count * 3);
     const seeds = new Float32Array(count);
     const sizes = new Float32Array(count);
@@ -1260,14 +1279,16 @@
   }
 
   const nebulae = [];
-  WP.forEach((w, i) => {
-    if (i === 0 || i === N-1) return;
-    nebulae.push(createNebula(
-      new THREE.Vector3(...w.pos),
-      w.color,
-      12 + Math.random() * 8
-    ));
-  });
+  if (TIER !== 'LOW') {
+    WP.forEach((w, i) => {
+      if (i === 0 || i === N-1) return;
+      nebulae.push(createNebula(
+        new THREE.Vector3(...w.pos),
+        w.color,
+        12 + Math.random() * 8
+      ));
+    });
+  }
 
   // ═══════════════════════════════════════
   // WAYPOINT ORBS — Volumetric Glow
@@ -1315,7 +1336,7 @@
 
     // Orbiting ring particles
     const ringGeo = new THREE.BufferGeometry();
-    const ringCount = 30;
+    const ringCount = isMobile ? 12 : 30;
     const ringPos = new Float32Array(ringCount * 3);
     const ringSeed = new Float32Array(ringCount);
     const ringRadius = gs * 0.6;
@@ -1378,19 +1399,19 @@
   scene.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color:0x334477,transparent:true,opacity:0.04})));
 
   // ═══════════════════════════════════════
-  // FLOATING GEOMETRY — Interactive 3D Elements
+  // FLOATING GEOMETRY — Interactive 3D Elements (desktop/mid only)
   // ═══════════════════════════════════════
   const floatingGeo = [];
-  const geoTypes = [
-    new THREE.IcosahedronGeometry(0.8, 1),
+  const geoTypes = TIER !== 'LOW' ? [
+    new THREE.IcosahedronGeometry(0.8, isMobile ? 0 : 1),
     new THREE.OctahedronGeometry(0.6, 0),
     new THREE.TetrahedronGeometry(0.5, 0),
-    new THREE.TorusGeometry(0.5, 0.15, 8, 32),
+    new THREE.TorusGeometry(0.5, 0.15, isMobile ? 6 : 8, isMobile ? 16 : 32),
     new THREE.DodecahedronGeometry(0.4, 0),
-  ];
+  ] : [];
 
   WP.forEach((w, i) => {
-    if (i === 0 || i === N-1) return;
+    if (i === 0 || i === N-1 || TIER === 'LOW') return;
     const geo = geoTypes[i % geoTypes.length];
     const mat = new THREE.MeshBasicMaterial({
       color: new THREE.Color(w.color),
@@ -1412,7 +1433,7 @@
   // ═══════════════════════════════════════
   // PARTICLE TRAIL — Enhanced
   // ═══════════════════════════════════════
-  const TRAIL_N = 180;
+  const TRAIL_N = isMobile ? 60 : 180;
   const trailGeo = new THREE.BufferGeometry();
   const trailPos = new Float32Array(TRAIL_N*3);
   const trailAlpha = new Float32Array(TRAIL_N);
@@ -1452,7 +1473,7 @@
   // ═══════════════════════════════════════
   // MOUSE REACTIVE PARTICLES
   // ═══════════════════════════════════════
-  const mouseParticleCount = 50;
+  const mouseParticleCount = isMobile ? 0 : 50;
   const mouseGeo = new THREE.BufferGeometry();
   const mousePos = new Float32Array(mouseParticleCount * 3);
   const mouseSeed = new Float32Array(mouseParticleCount);
@@ -1486,7 +1507,7 @@
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
   });
   const mousePoints = new THREE.Points(mouseGeo, mouseMat);
-  scene.add(mousePoints);
+  if (mouseParticleCount > 0) scene.add(mousePoints);
 
   // ═══════════════════════════════════════
   // AUDIO SYSTEM
@@ -1794,17 +1815,26 @@
   const raycaster = new THREE.Raycaster();
   const mouseVec = new THREE.Vector2();
 
+  // Frame rate control — 60fps desktop, 30fps low-end mobile
+  const targetFrameTime = isLowEnd ? 33.3 : 0; // 0 = uncapped
+  let lastFrameTime = 0;
+
   function tick() {
     requestAnimationFrame(tick);
     if(!loaded) return;
 
     const now = performance.now();
-    const dt = Math.min((now-lastTime)/1000, 0.033);
+
+    // Frame rate limiter for mobile
+    if (targetFrameTime && (now - lastFrameTime) < targetFrameTime) return;
+    lastFrameTime = now;
+
+    const dt = Math.min((now-lastTime)/1000, 0.05);
     lastTime = now;
     const t = now * 0.001;
 
-    // Custom cursor
-    updateCursor();
+    // Custom cursor (desktop only)
+    if (!isMobile) updateCursor();
 
     // Smooth navigation
     const lerpFactor = 1 - Math.pow(0.012, dt);
@@ -1862,8 +1892,10 @@
     near.mat.uniforms.uSpeed.value = smoothSpeed;
     far.mat.uniforms.uTime.value = t;
     far.mat.uniforms.uSpeed.value = smoothSpeed;
-    dust.mat.uniforms.uTime.value = t;
-    dust.mat.uniforms.uSpeed.value = smoothSpeed * 0.5;
+    if (dust) {
+      dust.mat.uniforms.uTime.value = t;
+      dust.mat.uniforms.uSpeed.value = smoothSpeed * 0.5;
+    }
 
     // Nebula animation
     nebulae.forEach((n, i) => {
@@ -1904,19 +1936,21 @@
     trailMat.uniforms.uTime.value = t;
 
     // Mouse-reactive particles — orbit around cursor in world space
-    const mp = mouseGeo.attributes.position.array;
-    mouseVec.set(mouseNormX * 2 - 1, -(mouseNormY * 2 - 1));
-    raycaster.setFromCamera(mouseVec, camera);
-    const mouseWorldPos = raycaster.ray.at(8, new THREE.Vector3());
-    for (let i = 0; i < mouseParticleCount; i++) {
-      const angle = (i / mouseParticleCount) * Math.PI * 2 + t * 0.5;
-      const r = 0.5 + Math.sin(t * 1.5 + mouseSeed[i] * 3) * 0.3;
-      mp[i*3] = mouseWorldPos.x + Math.cos(angle) * r;
-      mp[i*3+1] = mouseWorldPos.y + Math.sin(angle) * r;
-      mp[i*3+2] = mouseWorldPos.z + Math.sin(angle * 0.5 + t) * r * 0.3;
+    if (mouseParticleCount > 0) {
+      const mp = mouseGeo.attributes.position.array;
+      mouseVec.set(mouseNormX * 2 - 1, -(mouseNormY * 2 - 1));
+      raycaster.setFromCamera(mouseVec, camera);
+      const mouseWorldPos = raycaster.ray.at(8, new THREE.Vector3());
+      for (let i = 0; i < mouseParticleCount; i++) {
+        const angle = (i / mouseParticleCount) * Math.PI * 2 + t * 0.5;
+        const r = 0.5 + Math.sin(t * 1.5 + mouseSeed[i] * 3) * 0.3;
+        mp[i*3] = mouseWorldPos.x + Math.cos(angle) * r;
+        mp[i*3+1] = mouseWorldPos.y + Math.sin(angle) * r;
+        mp[i*3+2] = mouseWorldPos.z + Math.sin(angle * 0.5 + t) * r * 0.3;
+      }
+      mouseGeo.attributes.position.needsUpdate = true;
+      mouseMat.uniforms.uTime.value = t;
     }
-    mouseGeo.attributes.position.needsUpdate = true;
-    mouseMat.uniforms.uTime.value = t;
 
     // Pulse orbs
     orbs.forEach((o,i) => {
@@ -1951,20 +1985,28 @@
     else quoteEl.classList.remove('gone');
 
     // Post-processing updates
-    chromaPass.uniforms.uIntensity.value = smoothSpeed * 3;
-    chromaPass.uniforms.uTime.value = t;
-    filmPass.uniforms.uTime.value = t;
-    filmPass.uniforms.uSpeed.value = smoothSpeed;
-
-    // Bloom reacts to speed
-    bloomPass.strength = 0.55 + smoothSpeed * 1.2;
-    bloomPass.radius = 0.45 + smoothSpeed * 0.25;
+    if (chromaPass) {
+      chromaPass.uniforms.uIntensity.value = smoothSpeed * 3;
+      chromaPass.uniforms.uTime.value = t;
+    }
+    if (filmPass) {
+      filmPass.uniforms.uTime.value = t;
+      filmPass.uniforms.uSpeed.value = smoothSpeed;
+    }
+    if (bloomPass) {
+      bloomPass.strength = (isMobile ? 0.35 : 0.55) + smoothSpeed * (isMobile ? 0.6 : 1.2);
+      bloomPass.radius = (isMobile ? 0.25 : 0.45) + smoothSpeed * 0.25;
+    }
 
     // Audio
     updateAudio(smoothSpeed);
 
-    // Render via composer (post-processing)
-    composer.render();
+    // Render — via composer if available, direct otherwise
+    if (composer) {
+      composer.render();
+    } else {
+      renderer.render(scene, camera);
+    }
   }
   tick();
 
@@ -1974,9 +2016,9 @@
     camera.aspect = w/h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    composer.setSize(w, h);
-    bloomPass.setSize(w, h);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile ? 1.5 : 2));
+    if (composer) composer.setSize(w, h);
+    if (bloomPass) bloomPass.setSize(w, h);
     near.mat.uniforms.uResolution.value.set(w, h);
   }
   addEventListener('resize', onResize);
