@@ -149,8 +149,14 @@
     .wp::before {
       content:''; position:absolute;
       top:50%; left:50%; transform:translate(-50%,-50%);
-      width:160%; height:200%; border-radius:50%;
-      background:radial-gradient(ellipse at center, rgba(3,1,8,0.55) 0%, rgba(3,1,8,0.25) 30%, rgba(3,1,8,0.08) 55%, transparent 75%);
+      width:200%; height:250%; border-radius:50%;
+      background:radial-gradient(ellipse at center,
+        rgba(3,1,8,0.85) 0%,
+        rgba(3,1,8,0.7) 15%,
+        rgba(3,1,8,0.45) 30%,
+        rgba(3,1,8,0.2) 50%,
+        rgba(3,1,8,0.05) 65%,
+        transparent 80%);
       pointer-events:none; z-index:-1;
     }
     .wp .label {
@@ -163,15 +169,15 @@
     .wp.active .label { opacity:0.8; transform: translateY(0); }
     .wp h2 {
       font-family:'Space Grotesk',sans-serif;
-      font-weight:300; line-height:1.15;
+      font-weight:400; line-height:1.15;
       margin-bottom:18px; letter-spacing:0.01em;
-      text-shadow: 0 0 40px rgba(3,1,8,0.95), 0 0 80px rgba(3,1,8,0.6), 0 2px 4px rgba(0,0,0,0.5);
+      text-shadow: 0 0 20px rgba(3,1,8,1), 0 0 40px rgba(3,1,8,0.8), 0 0 80px rgba(3,1,8,0.5);
       transition: opacity 0.8s ease 0.15s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.15s;
     }
     .wp p {
       font-weight:300; line-height:1.8;
-      max-width:500px; margin:0 auto; opacity:0.7;
-      text-shadow: 0 0 30px rgba(3,1,8,0.95), 0 0 60px rgba(3,1,8,0.5);
+      max-width:500px; margin:0 auto; opacity:0.75;
+      text-shadow: 0 0 16px rgba(3,1,8,1), 0 0 40px rgba(3,1,8,0.7);
       transition: opacity 0.8s ease 0.25s;
     }
     .wp .tags {
@@ -187,8 +193,9 @@
       backdrop-filter: blur(4px);
     }
     .wp.active .tag {
-      border-color:rgba(168,192,255,0.18);
-      color:rgba(168,192,255,0.55);
+      border-color:rgba(168,192,255,0.22);
+      color:rgba(168,192,255,0.65);
+      text-shadow: none;
     }
     .wp.active .tag:hover {
       border-color:rgba(168,192,255,0.4);
@@ -204,6 +211,7 @@
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
       animation: heroShimmer 6s ease infinite;
       background-size: 200% 200%;
+      filter: drop-shadow(0 0 8px rgba(168,192,255,0.3));
     }
     @keyframes heroShimmer {
       0%,100% { background-position: 0% 50%; }
@@ -1005,9 +1013,9 @@
     // Bloom — disabled on low-end, reduced on mid
     bloomPass = new UnrealBloomPass(
       new THREE.Vector2(innerWidth, innerHeight),
-      isMobile ? 0.4 : 0.6,
-      isMobile ? 0.3 : 0.5,
-      isMobile ? 0.4 : 0.3
+      isMobile ? 0.3 : 0.45,
+      isMobile ? 0.2 : 0.35,
+      isMobile ? 0.45 : 0.35
     );
     composer.addPass(bloomPass);
 
@@ -1103,7 +1111,7 @@
           vDist = -mv.z;
           // Stretch stars during warp
           float stretch = 1.0 + uSpeed * 8.0;
-          gl_PointSize = size * stretch * (160.0 / -mv.z);
+          gl_PointSize = size * stretch * (90.0 / -mv.z);
           gl_Position = projectionMatrix * mv;
           // Twinkle with multiple frequencies for organic feel
           float twinkle1 = sin(uTime*0.4+seed) * 0.5 + 0.5;
@@ -1122,17 +1130,15 @@
           float d = length(vec2(uv.x, uv.y * (1.0 + uSpeed*6.0))) * 2.0;
           if(d > 1.0) discard;
 
-          // Multi-layer glow: crisp core + warm halo + faint outer
-          float core = exp(-d*d*12.0);          // tight bright center
-          float halo = exp(-d*d*3.5) * 0.3;     // soft glow ring
-          float outer = exp(-d*d*1.0) * 0.08;   // faint aura
-          float a = (core + halo + outer) * vA * uBright;
+          // Sharp pinpoint star with subtle halo
+          float core = exp(-d*d*20.0);           // very tight pinpoint
+          float halo = exp(-d*d*6.0) * 0.15;     // subtle glow
+          float a = (core + halo) * vA * uBright;
 
           // Warp brightening
-          a += uSpeed * 0.2;
+          a += uSpeed * 0.15;
 
-          // Color shift at edges — slight blue tint on outer glow
-          vec3 col = mix(vColor, vec3(0.6, 0.7, 1.0), outer * 0.5);
+          vec3 col = vColor;
 
           gl_FragColor = vec4(col, a);
         }`,
@@ -1141,11 +1147,11 @@
     return { points:new THREE.Points(g,m), mat:m };
   }
 
-  // Stars — scaled by performance tier
-  const close = mkStars(Math.floor(400 * PERF), 25, [0.8, 4.0], 0.7);
-  const near = mkStars(Math.floor(2500 * PERF), 65, [0.3, 2.2], 0.55);
-  const far = mkStars(Math.floor(5000 * PERF), 300, [0.12, 0.8], 0.22);
-  const dust = TIER !== 'LOW' ? mkStars(Math.floor(1500 * PERF), 180, [0.05, 0.25], 0.08) : null;
+  // Stars — sharp pinpoints, scaled by performance tier
+  const close = mkStars(Math.floor(250 * PERF), 30, [0.6, 2.5], 0.65);
+  const near = mkStars(Math.floor(2000 * PERF), 70, [0.2, 1.4], 0.5);
+  const far = mkStars(Math.floor(4000 * PERF), 300, [0.1, 0.6], 0.2);
+  const dust = TIER !== 'LOW' ? mkStars(Math.floor(800 * PERF), 200, [0.05, 0.2], 0.06) : null;
   scene.add(close.points); scene.add(near.points); scene.add(far.points);
   if (dust) scene.add(dust.points);
 
@@ -1180,7 +1186,7 @@
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
         float dist = -mv.z;
         // Fade: visible only when close
-        vA = smoothstep(15.0, 2.0, dist) * (0.15 + 0.15 * sin(uTime * 0.5 + seed));
+        vA = smoothstep(12.0, 2.0, dist) * (0.08 + 0.08 * sin(uTime * 0.5 + seed));
         gl_PointSize = size * (120.0 / max(dist, 0.5));
         gl_Position = projectionMatrix * mv;
       }
@@ -1190,8 +1196,8 @@
       void main() {
         float d = length(gl_PointCoord - 0.5) * 2.0;
         if (d > 1.0) discard;
-        float a = exp(-d*d*1.5) * vA;
-        gl_FragColor = vec4(0.7, 0.8, 1.0, a);
+        float a = exp(-d*d*3.0) * vA;
+        gl_FragColor = vec4(0.65, 0.75, 1.0, a);
       }
     `,
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
@@ -1319,7 +1325,7 @@
     mesh.position.set(...w.pos); scene.add(mesh);
 
     // Inner glow
-    const gs = i===0 ? 6 : 3.5;
+    const gs = i===0 ? 4 : 2.5;
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({
       map:mkGlow(w.color, 256), transparent:true, opacity:0.6,
       depthWrite:false, blending:THREE.AdditiveBlending
@@ -1327,7 +1333,7 @@
     sp.scale.set(gs,gs,1); sp.position.set(...w.pos); scene.add(sp);
 
     // Outer halo
-    const gs2 = gs * 3;
+    const gs2 = gs * 2;
     const sp2 = new THREE.Sprite(new THREE.SpriteMaterial({
       map:mkGlow(w.color, 256), transparent:true, opacity:0.08,
       depthWrite:false, blending:THREE.AdditiveBlending
@@ -1959,8 +1965,8 @@
       o.sp2.scale.setScalar(o.gs2*(1+0.1*Math.sin(t*0.8+i*2.1)));
       const d = camera.position.distanceTo(o.mesh.position);
       const prox = Math.max(0, 1 - d/20);
-      o.sp.material.opacity = 0.35 + prox * 0.55;
-      o.sp2.material.opacity = 0.06 + prox * 0.14;
+      o.sp.material.opacity = 0.25 + prox * 0.4;
+      o.sp2.material.opacity = 0.04 + prox * 0.08;
       o.ringMat.uniforms.uTime.value = t;
     });
 
@@ -1994,8 +2000,8 @@
       filmPass.uniforms.uSpeed.value = smoothSpeed;
     }
     if (bloomPass) {
-      bloomPass.strength = (isMobile ? 0.35 : 0.55) + smoothSpeed * (isMobile ? 0.6 : 1.2);
-      bloomPass.radius = (isMobile ? 0.25 : 0.45) + smoothSpeed * 0.25;
+      bloomPass.strength = (isMobile ? 0.25 : 0.4) + smoothSpeed * (isMobile ? 0.5 : 0.8);
+      bloomPass.radius = (isMobile ? 0.2 : 0.3) + smoothSpeed * 0.2;
     }
 
     // Audio
