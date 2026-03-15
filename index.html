@@ -1858,53 +1858,36 @@
   window.addEventListener('wheel', onWheel, {passive:false});
   touchLayer.addEventListener('wheel', onWheel, {passive:false});
 
-  // Touch: smooth continuous drag + snap to nearest waypoint on release
-  let ty0=0, tyLast=0, swiping=false, touchVelocity=0;
-  let touchDragTarget = tgt; // smooth target during drag
-  const TOUCH_SENSITIVITY = 1.875; // how fast dragging moves through space (25% slower)
-  const SNAP_THRESHOLD = 0.015; // snap to WP if within this range
+  // Touch: one swipe = one section, with cooldown to prevent multi-jump
+  let ty0=0, swiping=false, swipeLocked=false;
+  const TOUCH_THRESHOLD = 40; // px required to trigger a swipe
+  let lastSwipeTime = 0;
+  const SWIPE_COOLDOWN = 400; // ms before next swipe is allowed
 
   function handleTouchStart(e) {
     if(e.target.closest('input,textarea,button,a')) return;
     ty0 = e.touches[0].clientY;
-    tyLast = ty0;
     swiping = true;
-    touchVelocity = 0;
-    touchDragTarget = tgt;
+    swipeLocked = false;
   }
   function handleTouchMove(e) {
-    if(!swiping) return;
+    if(!swiping || swipeLocked) return;
     if(e.target.closest('input,textarea')) return;
     e.preventDefault();
-    const y = e.touches[0].clientY;
-    const dy = tyLast - y; // positive = swipe up = move forward
-    tyLast = y;
-
-    // Smooth continuous movement — feels like flying through space
-    const delta = (dy / innerHeight) * TOUCH_SENSITIVITY;
-    touchDragTarget = Math.max(0, Math.min(1, touchDragTarget + delta));
-    tgt = touchDragTarget;
-
-    // Track velocity for momentum
-    touchVelocity = delta;
+    const dy = ty0 - e.touches[0].clientY;
+    const now = performance.now();
+    if (Math.abs(dy) > TOUCH_THRESHOLD && (now - lastSwipeTime) > SWIPE_COOLDOWN) {
+      const dir = Math.sign(dy);
+      const nextWP = Math.max(0, Math.min(N-1, targetWP + dir));
+      if (nextWP !== targetWP) {
+        targetWP = nextWP;
+        tgt = wpT[targetWP];
+        lastSwipeTime = now;
+      }
+      swipeLocked = true; // lock until finger lifts
+    }
   }
-  function handleTouchEnd() {
-    if (!swiping) return;
-    swiping = false;
-
-    // Add momentum
-    const momentum = touchVelocity * 6;
-    touchDragTarget = Math.max(0, Math.min(1, touchDragTarget + momentum));
-
-    // Snap to nearest waypoint
-    let nearestWP = 0, nearestDist = Infinity;
-    wpT.forEach((w, i) => {
-      const d = Math.abs(touchDragTarget - w);
-      if (d < nearestDist) { nearestDist = d; nearestWP = i; }
-    });
-    targetWP = nearestWP;
-    tgt = wpT[targetWP];
-  }
+  function handleTouchEnd() { swiping = false; swipeLocked = false; }
 
   touchLayer.addEventListener('touchstart', handleTouchStart, {passive:true});
   touchLayer.addEventListener('touchmove', handleTouchMove, {passive:false});
