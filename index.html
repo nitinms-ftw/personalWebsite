@@ -372,64 +372,64 @@
 
     /* ─── CONNECT SECTION ─── */
     .social-row {
-      display:flex; gap:10px; justify-content:center;
-      margin-top:22px; flex-wrap:wrap; pointer-events:auto;
+      display:flex; gap:12px; justify-content:center;
+      margin-top:24px; flex-wrap:wrap; pointer-events:auto;
     }
     .social-link {
-      display:flex; align-items:center; gap:7px;
-      padding:8px 16px; border:1px solid rgba(168,192,255,0.08);
-      border-radius:30px; color:rgba(168,192,255,0.4);
-      text-decoration:none; font-size:0.68rem;
+      display:flex; align-items:center; gap:8px;
+      padding:10px 20px; border:1px solid rgba(168,192,255,0.2);
+      border-radius:30px; color:rgba(200,215,245,0.75);
+      text-decoration:none; font-size:0.75rem; font-weight:400;
       transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
-      backdrop-filter:blur(4px);
-      background:rgba(168,192,255,0.02);
+      backdrop-filter:blur(6px);
+      background:rgba(168,192,255,0.05);
     }
     .social-link:hover {
-      color:#fff; border-color:rgba(168,192,255,0.35);
-      background:rgba(168,192,255,0.06);
+      color:#fff; border-color:rgba(168,192,255,0.45);
+      background:rgba(168,192,255,0.1);
       transform:translateY(-2px);
-      box-shadow:0 4px 20px rgba(168,192,255,0.1);
+      box-shadow:0 4px 24px rgba(168,192,255,0.15);
     }
-    .social-link svg { width:13px; height:13px; fill:currentColor; }
+    .social-link svg { width:14px; height:14px; fill:currentColor; }
 
     .contact-form {
-      max-width:380px; margin:18px auto 0; text-align:left; pointer-events:auto;
+      max-width:400px; margin:22px auto 0; text-align:left; pointer-events:auto;
     }
-    .fr { margin-bottom:12px; }
+    .fr { margin-bottom:14px; }
     .fr label {
-      display:block; font-size:0.55rem; letter-spacing:0.12em;
-      text-transform:uppercase; color:rgba(168,192,255,0.25); margin-bottom:4px;
+      display:block; font-size:0.6rem; letter-spacing:0.12em; font-weight:400;
+      text-transform:uppercase; color:rgba(200,215,245,0.55); margin-bottom:6px;
     }
     .fr input, .fr textarea {
-      width:100%; padding:10px 14px;
-      background:rgba(168,192,255,0.02);
-      border:1px solid rgba(168,192,255,0.06);
-      border-radius:8px; color:#e0e6f0;
-      font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:300;
+      width:100%; padding:11px 14px;
+      background:rgba(168,192,255,0.04);
+      border:1px solid rgba(168,192,255,0.15);
+      border-radius:8px; color:#e8ecf5;
+      font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:300;
       outline:none; transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
-      backdrop-filter:blur(4px);
+      backdrop-filter:blur(6px);
     }
     .fr input:focus, .fr textarea:focus {
-      border-color:rgba(168,192,255,0.3);
-      background:rgba(168,192,255,0.04);
-      box-shadow:0 0 20px rgba(168,192,255,0.05);
+      border-color:rgba(168,192,255,0.4);
+      background:rgba(168,192,255,0.07);
+      box-shadow:0 0 24px rgba(168,192,255,0.08);
     }
-    .fr textarea { min-height:70px; resize:vertical; }
-    .fr input::placeholder, .fr textarea::placeholder { color:rgba(168,192,255,0.12); }
+    .fr textarea { min-height:80px; resize:vertical; }
+    .fr input::placeholder, .fr textarea::placeholder { color:rgba(168,192,255,0.22); }
     .send-btn {
-      display:block; width:100%; padding:12px;
-      background:rgba(168,192,255,0.04); border:1px solid rgba(168,192,255,0.12);
-      border-radius:8px; color:rgba(168,192,255,0.6);
-      font-family:'Inter',sans-serif; font-size:0.82rem;
+      display:block; width:100%; padding:13px;
+      background:rgba(168,192,255,0.07); border:1px solid rgba(168,192,255,0.22);
+      border-radius:8px; color:rgba(200,215,245,0.8);
+      font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:400;
       cursor:pointer; transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
       letter-spacing:0.06em;
-      backdrop-filter:blur(4px);
+      backdrop-filter:blur(6px);
     }
     .send-btn:hover {
-      background:rgba(168,192,255,0.1); border-color:rgba(168,192,255,0.35);
-      color:#fff; box-shadow:0 4px 20px rgba(168,192,255,0.1);
+      background:rgba(168,192,255,0.14); border-color:rgba(168,192,255,0.45);
+      color:#fff; box-shadow:0 4px 24px rgba(168,192,255,0.15);
     }
-    .form-status { text-align:center; margin-top:8px; font-size:0.75rem; min-height:18px; }
+    .form-status { text-align:center; margin-top:10px; font-size:0.78rem; min-height:18px; }
     .form-status.ok { color:#a8ffc0; }
     .form-status.err { color:#ff8888; }
 
